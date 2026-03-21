@@ -1,31 +1,40 @@
 <template>
   <div class="page">
     <text class="title">开学日期</text>
-    <text class="subtitle">{{ dateText }}</text>
 
-    <div class="picker-row">
-      <input class="op-btn" type="button" value="-" onclick="minusYear" />
-      <text class="picker-value">{{ year }}</text>
-      <input class="op-btn" type="button" value="+" onclick="plusYear" />
-      <text class="picker-label">年</text>
+    <picker
+      class="picker year-picker"
+      type="text"
+      range="{{ yearOptions }}"
+      selected="{{ yearIndex }}"
+      value="{{ yearIndex }}"
+      onchange="onYearChange"
+    ></picker>
+
+    <div class="picker-inline-row">
+      <picker
+        class="picker half-picker"
+        type="text"
+        range="{{ monthOptions }}"
+        selected="{{ monthIndex }}"
+        value="{{ monthIndex }}"
+        onchange="onMonthChange"
+      ></picker>
+      <picker
+        class="picker half-picker"
+        type="text"
+        range="{{ dayOptions }}"
+        selected="{{ dayIndex }}"
+        value="{{ dayIndex }}"
+        onchange="onDayChange"
+      ></picker>
     </div>
 
-    <div class="picker-row">
-      <input class="op-btn" type="button" value="-" onclick="minusMonth" />
-      <text class="picker-value">{{ month }}</text>
-      <input class="op-btn" type="button" value="+" onclick="plusMonth" />
-      <text class="picker-label">月</text>
+    <div class="action-wrap">
+      <div class="confirm-button" onclick="saveAndBack">
+        <image class="confirm-icon" src="/common/tick.png"></image>
+      </div>
     </div>
-
-    <div class="picker-row">
-      <input class="op-btn" type="button" value="-" onclick="minusDay" />
-      <text class="picker-value">{{ day }}</text>
-      <input class="op-btn" type="button" value="+" onclick="plusDay" />
-      <text class="picker-label">日</text>
-    </div>
-
-    <input class="save-btn" type="button" value="保存并返回" onclick="saveAndBack" />
-    <input class="back-btn" type="button" value="取消" onclick="back" />
   </div>
 </template>
 
@@ -36,6 +45,8 @@ import prompt from "@system.prompt"
 
 const STORAGE_KEY = "schedule_data"
 const TODAY = new Date()
+const YEAR_MIN = 2000
+const YEAR_MAX = 2100
 
 function pad(value) {
   return (value + "").padStart(2, "0")
@@ -72,6 +83,29 @@ function daysInMonth(y, m) {
   return new Date(y, m, 0).getDate()
 }
 
+function getTodayDate() {
+  return {
+    y: TODAY.getFullYear(),
+    m: TODAY.getMonth() + 1,
+    d: TODAY.getDate()
+  }
+}
+
+function normalizeScheduleData(data) {
+  if (!data || typeof data !== "object") {
+    return createEmptySchedule()
+  }
+  const normalized = {
+    courses: Array.isArray(data.courses) ? data.courses : [],
+    timeSlots: Array.isArray(data.timeSlots) ? data.timeSlots : [],
+    config: data.config && typeof data.config === "object" ? data.config : {}
+  }
+  if (!normalized.config.semesterStartDate) {
+    normalized.config.semesterStartDate = ""
+  }
+  return normalized
+}
+
 function showToast(message) {
   prompt.showToast({
     message,
@@ -80,27 +114,130 @@ function showToast(message) {
 }
 
 export default {
-  protected: {
-    semesterStartDate: ""
-  },
-
   private: {
     year: TODAY.getFullYear(),
     month: TODAY.getMonth() + 1,
     day: TODAY.getDate(),
     dateText: formatDate(TODAY.getFullYear(), TODAY.getMonth() + 1, TODAY.getDate()),
+    yearOptions: [],
+    monthOptions: [],
+    dayOptions: [],
+    yearIndex: 0,
+    monthIndex: 0,
+    dayIndex: 0,
     scheduleData: createEmptySchedule()
   },
 
   onInit() {
-    const initial = parseDate(this.semesterStartDate) || parseDate(this.dateText)
-    if (initial) {
-      this.year = initial.y
-      this.month = initial.m
-      this.day = initial.d
-      this.syncDateText()
-    }
+    this.initPickerOptions()
+    this.applyTodayDate()
     this.loadData()
+  },
+
+  initPickerOptions() {
+    const years = []
+    for (let y = YEAR_MIN; y <= YEAR_MAX; y += 1) {
+      years.push(y + "")
+    }
+    const months = []
+    for (let m = 1; m <= 12; m += 1) {
+      months.push(pad(m))
+    }
+    this.yearOptions = years
+    this.monthOptions = months
+  },
+
+  applyTodayDate() {
+    const today = getTodayDate()
+    this.applyDate(today.y, today.m, today.d)
+  },
+
+  applySavedOrToday() {
+    const savedDate = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate
+    const saved = parseDate(savedDate)
+    if (saved) {
+      this.applyDate(saved.y, saved.m, saved.d)
+      return
+    }
+    this.applyTodayDate()
+  },
+
+  applyDate(y, m, d) {
+    let safeYear = y
+    if (safeYear < YEAR_MIN) {
+      safeYear = YEAR_MIN
+    }
+    if (safeYear > YEAR_MAX) {
+      safeYear = YEAR_MAX
+    }
+
+    let safeMonth = m
+    if (safeMonth < 1) {
+      safeMonth = 1
+    }
+    if (safeMonth > 12) {
+      safeMonth = 12
+    }
+
+    this.yearIndex = safeYear - YEAR_MIN
+    this.monthIndex = safeMonth - 1
+    this.refreshDayOptions()
+
+    const maxDay = this.dayOptions.length
+    let safeDay = d
+    if (safeDay < 1) {
+      safeDay = 1
+    }
+    if (safeDay > maxDay) {
+      safeDay = maxDay
+    }
+    this.dayIndex = safeDay - 1
+    this.syncDateText()
+  },
+
+  getPickerIndex(event, options, fallbackIndex) {
+    const raw = event && (event.newValue !== undefined ? event.newValue : event.value)
+    if (raw === undefined || raw === null || raw === "") {
+      return fallbackIndex >= 0 ? fallbackIndex : 0
+    }
+    const text = raw + ""
+    const directIndex = Array.isArray(options) ? options.indexOf(text) : -1
+    if (directIndex >= 0) {
+      return directIndex
+    }
+
+    const numeric = parseInt(text, 10)
+    if (!Number.isNaN(numeric)) {
+      if (numeric >= 0 && Array.isArray(options) && numeric < options.length) {
+        return numeric
+      }
+      if (Array.isArray(options)) {
+        const plainValueIndex = options.indexOf(numeric + "")
+        if (plainValueIndex >= 0) {
+          return plainValueIndex
+        }
+        const paddedValueIndex = options.indexOf(pad(numeric))
+        if (paddedValueIndex >= 0) {
+          return paddedValueIndex
+        }
+      }
+    }
+
+    return fallbackIndex >= 0 ? fallbackIndex : 0
+  },
+
+  refreshDayOptions() {
+    const selectedYear = YEAR_MIN + this.yearIndex
+    const selectedMonth = this.monthIndex + 1
+    const maxDay = daysInMonth(selectedYear, selectedMonth)
+    const days = []
+    for (let d = 1; d <= maxDay; d += 1) {
+      days.push(pad(d))
+    }
+    this.dayOptions = days
+    if (this.dayIndex > maxDay - 1) {
+      this.dayIndex = maxDay - 1
+    }
   },
 
   loadData() {
@@ -108,73 +245,49 @@ export default {
       key: STORAGE_KEY,
       success: raw => {
         try {
-          const parsed = JSON.parse(raw)
-          this.scheduleData = parsed && typeof parsed === "object" ? parsed : createEmptySchedule()
+          this.scheduleData = normalizeScheduleData(JSON.parse(raw))
+          this.applySavedOrToday()
         } catch (e) {
           this.scheduleData = createEmptySchedule()
+          this.applyTodayDate()
         }
       },
       fail: () => {
         this.scheduleData = createEmptySchedule()
+        this.applyTodayDate()
       }
     })
   },
 
+  applyPickerChange(event, options, currentIndex) {
+    const nextIndex = this.getPickerIndex(event, options, currentIndex)
+    if (nextIndex >= options.length) {
+      return options.length - 1
+    }
+    return nextIndex
+  },
+
   syncDateText() {
-    const maxDay = daysInMonth(this.year, this.month)
-    if (this.day > maxDay) {
-      this.day = maxDay
-    }
-    if (this.day < 1) {
-      this.day = 1
-    }
+    this.year = YEAR_MIN + this.yearIndex
+    this.month = this.monthIndex + 1
+    this.day = this.dayIndex + 1
     this.dateText = formatDate(this.year, this.month, this.day)
   },
 
-  plusYear() {
-    this.year += 1
+  onYearChange(event) {
+    this.yearIndex = this.applyPickerChange(event, this.yearOptions, this.yearIndex)
+    this.refreshDayOptions()
     this.syncDateText()
   },
 
-  minusYear() {
-    this.year -= 1
-    if (this.year < 2000) {
-      this.year = 2000
-    }
+  onMonthChange(event) {
+    this.monthIndex = this.applyPickerChange(event, this.monthOptions, this.monthIndex)
+    this.refreshDayOptions()
     this.syncDateText()
   },
 
-  plusMonth() {
-    this.month += 1
-    if (this.month > 12) {
-      this.month = 1
-    }
-    this.syncDateText()
-  },
-
-  minusMonth() {
-    this.month -= 1
-    if (this.month < 1) {
-      this.month = 12
-    }
-    this.syncDateText()
-  },
-
-  plusDay() {
-    this.day += 1
-    const maxDay = daysInMonth(this.year, this.month)
-    if (this.day > maxDay) {
-      this.day = 1
-    }
-    this.syncDateText()
-  },
-
-  minusDay() {
-    this.day -= 1
-    const maxDay = daysInMonth(this.year, this.month)
-    if (this.day < 1) {
-      this.day = maxDay
-    }
+  onDayChange(event) {
+    this.dayIndex = this.applyPickerChange(event, this.dayOptions, this.dayIndex)
     this.syncDateText()
   },
 
@@ -200,10 +313,6 @@ export default {
         showToast("保存失败")
       }
     })
-  },
-
-  back() {
-    router.back()
   }
 }
 </script>
@@ -213,96 +322,68 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 14px;
+  padding-top: 18px;
+  padding-bottom: 6px;
   background-color: #000000;
   align-items: center;
+  justify-content: flex-start;
 }
 
 .title {
   color: #ffffff;
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.subtitle {
-  margin-top: 8px;
-  color: #ffffff;
   font-size: 26px;
+  font-weight: 800;
 }
 
-.picker-row {
+.picker {
+  height: 150px;
+  color: #777777;
+  selected-color: #ffffff;
+  selected-font-size: 28px;
+  font-size: 26px;
+  text-align: center;
+}
+
+.year-picker {
+  margin-top: 10px;
+}
+
+.picker-inline-row {
+  margin-top: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.half-picker {
+  width: 44%;
+}
+
+.action-wrap {
+  flex: 1;
+  flex-direction: column;
   width: 100%;
-  margin-top: 12px;
-  height: 44px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.confirm-button {
+  width: 56%;
+  height: 62px;
+  margin-bottom: 10px;
+  border-radius: 30px;
+  background-color: #287eff;
   align-items: center;
   justify-content: center;
 }
 
-.picker-label {
-  width: 30px;
-  color: #ffffff;
-  font-size: 24px;
+.confirm-icon {
+  width: 40px;
+  height: 40px;
 }
 
-.op-btn {
-  width: 44px;
-  height: 44px;
-  margin-left: 8px;
-  border-radius: 10px;
-  border-width: 2px;
-  border-color: #3b3b3b;
-  background-color: #0c0c0c;
-  color: #ffffff;
-  font-size: 28px;
-  font-weight: 700;
-  text-align: center;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-.picker-value {
-  width: 82px;
-  margin-left: 8px;
-  text-align: center;
-  color: #ffffff;
-  font-size: 24px;
-}
-
-.save-btn {
-  width: 84%;
-  height: 46px;
-  margin-top: 16px;
-  border-radius: 20px;
-  border-width: 2px;
-  border-color: #3b3b3b;
-  background-color: #111111;
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-.back-btn {
-  width: 84%;
-  height: 46px;
-  margin-top: 10px;
-  border-radius: 20px;
-  border-width: 2px;
-  border-color: #3b3b3b;
-  background-color: #111111;
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+@media (shape: rect) {
+  .confirm-button {
+    width: 34%;
+  }
 }
 </style>

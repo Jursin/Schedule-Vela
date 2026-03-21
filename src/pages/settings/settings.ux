@@ -2,10 +2,24 @@
   <div class="page">
     <text class="title">设置</text>
 
-    <input class="menu-btn" type="button" value="开学日期 >" onclick="openDatePicker" />
-    <input class="warn-btn" type="button" value="{{ clearConfirming ? '确认清除' : '清除配置' }}" onclick="clearSchedule" />
-
-    <input class="btn" type="button" value="返回" onclick="goBack" />
+    <list class="settings-list">
+      <list-item type="default" class="settings-item settings-item-date" onclick="openDatePicker">
+        <div class="item-main-row">
+          <div class="item-left-col">
+            <text class="item-text">开学日期</text>
+            <text class="item-subtext" if="{{ semesterStartDate }}">{{ semesterStartDate }}</text>
+          </div>
+          <text class="item-arrow">&gt;</text>
+        </div>
+      </list-item>
+      <list-item type="default" class="settings-item settings-item-switch">
+        <text class="item-text">显示教师</text>
+        <switch class="item-switch" checked="{{ showTeacher }}" onchange="onShowTeacherChange"></switch>
+      </list-item>
+      <list-item type="default" class="settings-item settings-item-warn" onclick="clearSchedule">
+        <text class="item-text item-text-warn">{{ clearConfirming ? '确认清除' : '清除配置' }}</text>
+      </list-item>
+    </list>
   </div>
 </template>
 
@@ -21,7 +35,8 @@ function createEmptySchedule() {
     courses: [],
     timeSlots: [],
     config: {
-      semesterStartDate: ""
+      semesterStartDate: "",
+      showTeacher: true
     }
   }
 }
@@ -44,9 +59,18 @@ function validateSchedule(data) {
   return true
 }
 
+function readShowTeacher(config) {
+  if (!config || config.showTeacher === undefined) {
+    return true
+  }
+  return config.showTeacher !== false
+}
+
 export default {
   private: {
+    scheduleData: createEmptySchedule(),
     semesterStartDate: "",
+    showTeacher: true,
     clearConfirming: false
   },
 
@@ -64,16 +88,45 @@ export default {
       success: raw => {
         const data = parseStoragePayload(raw)
         if (validateSchedule(data)) {
+          this.scheduleData = data
           this.semesterStartDate = (data.config && data.config.semesterStartDate) || ""
+          this.showTeacher = readShowTeacher(data.config)
           this.clearConfirming = false
           return
         }
+        this.scheduleData = createEmptySchedule()
         this.semesterStartDate = ""
+        this.showTeacher = true
         this.clearConfirming = false
       },
       fail: () => {
+        this.scheduleData = createEmptySchedule()
         this.semesterStartDate = ""
+        this.showTeacher = true
         this.clearConfirming = false
+      }
+    })
+  },
+
+  onShowTeacherChange(event) {
+    const raw = event && (event.checked !== undefined ? event.checked : event.value)
+    const nextShowTeacher = raw === true || raw === 1 || raw === "1" || raw === "true"
+    this.showTeacher = nextShowTeacher
+    if (!this.scheduleData || typeof this.scheduleData !== "object") {
+      this.scheduleData = createEmptySchedule()
+    }
+    if (!this.scheduleData.config || typeof this.scheduleData.config !== "object") {
+      this.scheduleData.config = {}
+    }
+    this.scheduleData.config.showTeacher = nextShowTeacher
+    storage.set({
+      key: STORAGE_KEY,
+      value: JSON.stringify(this.scheduleData),
+      fail: () => {
+        prompt.showToast({
+          message: "保存失败",
+          duration: 2000
+        })
       }
     })
   },
@@ -90,10 +143,6 @@ export default {
   clearSchedule() {
     if (!this.clearConfirming) {
       this.clearConfirming = true
-      prompt.showToast({
-        message: "再次点击确认清除",
-        duration: 2500
-      })
       return
     }
     storage.set({
@@ -136,61 +185,102 @@ export default {
 
 .title {
   color: #ffffff;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
 }
 
-.menu-btn {
-  width: 84%;
-  height: 52px;
-  margin-top: 14px;
-  border-radius: 20px;
-  border-width: 2px;
-  border-color: #3b3b3b;
-  background-color: #0c0c0c;
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+.settings-list {
+  flex: 1;
+  width: 90%;
+  flex-direction: column;
 }
 
-.warn-btn {
-  width: 84%;
-  height: 52px;
-  margin-top: 12px;
-  border-radius: 20px;
-  border-width: 2px;
-  border-color: #4a2b2b;
-  background-color: #130909;
-  color: #ffbcbc;
-  font-size: 24px;
-  font-weight: 700;
-  text-align: center;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-.btn {
-  width: 84%;
-  height: 46px;
-  margin-top: 12px;
+.settings-item {
+  width: 100%;
+  height: 64px;
+  margin-top: 8px;
   border-radius: 20px;
   border-width: 2px;
   border-color: #3b3b3b;
   background-color: #111111;
-  color: #ffffff;
-  font-size: 24px;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-item-date {
+  height: 84px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.item-main-row {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.item-left-col {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.item-subtext {
+  margin-top: 4px;
+  color: #aaaaaa;
+  font-size: 22px;
   font-weight: 700;
-  text-align: center;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+}
+
+.item-arrow {
+  color: #666666;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.settings-item-switch {
+  padding-left: 16px;
+  padding-right: 16px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.item-switch {
+  width: 58px;
+  height: 32px;
+}
+
+.item-text {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.settings-item-warn {
+  border-color: #4a2b2b;
+}
+
+.item-text-warn {
+  color: #bd0000;
+}
+
+@media (shape: pill-shaped) {
+  .item-text {
+    font-size: 22px;
+  }
+
+  .item-subtext {
+    font-size: 20px;
+  }
+
+  .item-arrow {
+    font-size: 28px;
+  }
+
+  .item-switch {
+    width: 42px;
+    height: 28px;
+  }
 }
 </style>

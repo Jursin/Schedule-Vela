@@ -1,8 +1,8 @@
 {
-  "package": "com.shiguang.band",
-  "name": "拾光课程表",
-  "versionName": "1.1.0",
-  "versionCode": 2,
+  "package": "com.schedule.vela",
+  "name": "腕上课程表",
+  "versionName": "1.2.0",
+  "versionCode": 3,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
   "deviceTypeList": [

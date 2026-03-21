@@ -1,7 +1,5 @@
-# 拾光课程表手环版
+# 腕上课程表
 
-> 仅测试了小米手环 9
->
 > 建议使用 [AstroBox](https://astrobox.online/downloads) 安装
 
 ## 开发
@@ -23,11 +21,10 @@
   ```
 
 ## 相关仓库
-- [拾光课程表同步器](https://github.com/Jursin/ShiGuang-Sync)
-- [拾光课程表](https://github.com/XingHeYuZhuan/shiguangschedule)
+- [腕上课程表同步器](https://github.com/Jursin/Schedule-Sync)
 
 ## 文档
-- [手环版文档](https://sgschedule.jursin.top/guide/user/band-edition.html)
+- [使用文档](https://sgschedule.jursin.top/guide/user/band-edition.html)
 - [Xiaomi Vela JS 应用开发文档](https://iot.mi.com/vela/quickapp)
 
 ## 许可协议

@@ -2,20 +2,34 @@
   <div class="page">
     <div class="header-wrap">
       <text class="week-text">第{{ currentWeekText }}周</text>
-      <div class="date-row">
-        <text class="day-text">{{ selectedDayText }}</text>
-        <text class="date-text">{{ selectedDateText }}</text>
+      <div class="date-switch-row">
+        <div class="date-arrow-button" onclick="goPrevDay">
+          <text class="date-arrow-text">&lt;</text>
+        </div>
+        <div class="date-center-wrap">
+          <div class="date-row">
+            <text class="day-text">{{ selectedDayText }}</text>
+            <text class="date-text">{{ selectedDateText }}</text>
+          </div>
+        </div>
+        <div class="date-arrow-button" onclick="goNextDay">
+          <text class="date-arrow-text">&gt;</text>
+        </div>
       </div>
     </div>
 
-    <div class="course-content" ontouchstart="onContentTouchStart" ontouchend="onContentTouchEnd">
+    <div class="course-content">
       <scroll class="course-list-scroll" scroll-y="true" if="{{ !notStarted && hasCourses }}">
         <block for="{{ displayCourses }}" tid="id">
           <div class="course-row">
-            <div class="course-card">
+            <div class="{{ $item.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}">
               <text class="course-name">{{ $item.name }}</text>
               <text class="course-meta">{{ $item.timeText }}</text>
               <text class="course-meta">{{ $item.position }}</text>
+              <text class="course-meta" if="{{ showTeacher && $item.teacher }}">{{ $item.teacher }}</text>
+              <div class="ongoing-progress-track" if="{{ $item.isOngoing }}">
+                <div class="ongoing-progress-fill" style="{{ 'width:' + $item.progressPercent + '%;' }}"></div>
+              </div>
             </div>
           </div>
         </block>
@@ -30,10 +44,8 @@
       </div>
     </div>
 
-    <div class="action-wrap">
-      <div class="settings-button" onclick="openSettings">
-        <image class="settings-icon" src="/common/more.png"></image>
-      </div>
+    <div class="settings-button" onclick="openSettings">
+      <image class="settings-icon" src="/common/more.png"></image>
     </div>
   </div>
 </template>
@@ -48,17 +60,14 @@ const STORAGE_KEY = "schedule_data"
 const conn = interconnect.instance()
 const DAY_SLIDE_TOTAL = 361
 const DAY_SLIDE_CENTER = Math.floor(DAY_SLIDE_TOTAL / 2)
-const SWIPE_MIN_DISTANCE = 42
-const SWIPE_HORIZONTAL_FACTOR = 1.2
-const RIGHT_SWIPE_MIN_DISTANCE = 56
-const EDGE_BACK_GUARD = 42
 
 function createEmptySchedule() {
   return {
     courses: [],
     timeSlots: [],
     config: {
-      semesterStartDate: ""
+      semesterStartDate: "",
+      showTeacher: true
     }
   }
 }
@@ -144,18 +153,6 @@ function formatMonthDay(date) {
   return m + "-" + d
 }
 
-function getTouchPoint(event) {
-  const changed = event && event.changedTouches
-  if (changed && changed.length > 0) {
-    return changed[0]
-  }
-  const touches = event && event.touches
-  if (touches && touches.length > 0) {
-    return touches[0]
-  }
-  return null
-}
-
 function normalizeScheduleData(data) {
   if (!data || typeof data !== "object") {
     return createEmptySchedule()
@@ -169,6 +166,9 @@ function normalizeScheduleData(data) {
   }
   if (!normalized.config.semesterStartDate) {
     normalized.config.semesterStartDate = ""
+  }
+  if (normalized.config.showTeacher === undefined) {
+    normalized.config.showTeacher = true
   }
   return normalized
 }
@@ -213,6 +213,86 @@ function sectionSortValue(course) {
   return 999
 }
 
+function parseTimeToMinutes(text) {
+  if (!text || typeof text !== "string") {
+    return null
+  }
+  const match = text.match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) {
+    return null
+  }
+  const hour = parseInt(match[1], 10)
+  const minute = parseInt(match[2], 10)
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    return null
+  }
+  return hour * 60 + minute
+}
+
+function resolveCourseRangeMinutes(item, startSlot, endSlot) {
+  if (item.isCustomTime === true && item.customStartTime && item.customEndTime) {
+    const start = parseTimeToMinutes(item.customStartTime)
+    const end = parseTimeToMinutes(item.customEndTime)
+    if (start === null || end === null) {
+      return null
+    }
+    return { start, end }
+  }
+
+  if (startSlot && endSlot) {
+    const start = parseTimeToMinutes(startSlot.startTime)
+    const end = parseTimeToMinutes(endSlot.endTime)
+    if (start === null || end === null) {
+      return null
+    }
+    return { start, end }
+  }
+
+  return null
+}
+
+function isCourseOngoing(item, startSlot, endSlot, isToday) {
+  if (!isToday) {
+    return false
+  }
+  const range = resolveCourseRangeMinutes(item, startSlot, endSlot)
+  if (!range) {
+    return false
+  }
+  const now = new Date()
+  const nowMinutes = now.getHours() * 60 + now.getMinutes()
+  if (range.end <= range.start) {
+    return false
+  }
+  return nowMinutes >= range.start && nowMinutes <= range.end
+}
+
+function courseProgressPercent(item, startSlot, endSlot, isToday) {
+  if (!isToday) {
+    return 0
+  }
+  const range = resolveCourseRangeMinutes(item, startSlot, endSlot)
+  if (!range || range.end <= range.start) {
+    return 0
+  }
+  const now = new Date()
+  const nowMinutes = now.getHours() * 60 + now.getMinutes()
+  if (nowMinutes <= range.start) {
+    return 0
+  }
+  if (nowMinutes >= range.end) {
+    return 100
+  }
+  const percent = Math.floor(((nowMinutes - range.start) * 100) / (range.end - range.start))
+  if (percent < 0) {
+    return 0
+  }
+  if (percent > 100) {
+    return 100
+  }
+  return percent
+}
+
 export default {
   private: {
     scheduleData: createEmptySchedule(),
@@ -222,11 +302,10 @@ export default {
     selectedDateKey: formatDate(new Date()),
     selectedOffsetDays: 0,
     daySlideIndex: DAY_SLIDE_CENTER,
-    touchStartX: -1,
-    touchStartY: -1,
     displayCourses: [],
     hasCourses: false,
     notStarted: false,
+    showTeacher: true,
     currentWeek: 0,
     currentWeekText: "-"
   },
@@ -270,53 +349,12 @@ export default {
     this.afterLoad()
   },
 
-  onContentTouchStart(event) {
-    const point = getTouchPoint(event)
-    if (!point) {
-      this.touchStartX = -1
-      this.touchStartY = -1
-      return
-    }
-    this.touchStartX = point.clientX
-    this.touchStartY = point.clientY
+  goPrevDay() {
+    this.applyDaySlideIndex(this.daySlideIndex - 1, true)
   },
 
-  onContentTouchEnd(event) {
-    if (this.touchStartX < 0 || this.touchStartY < 0) {
-      return
-    }
-
-    const point = getTouchPoint(event)
-    const startX = this.touchStartX
-    const startY = this.touchStartY
-    this.touchStartX = -1
-    this.touchStartY = -1
-
-    if (!point) {
-      return
-    }
-
-    const deltaX = point.clientX - startX
-    const deltaY = point.clientY - startY
-    const absDeltaX = Math.abs(deltaX)
-    const absDeltaY = Math.abs(deltaY)
-    if (absDeltaX < SWIPE_MIN_DISTANCE) {
-      return
-    }
-
-    if (absDeltaX <= absDeltaY * SWIPE_HORIZONTAL_FACTOR) {
-      return
-    }
-
-    // 左侧边缘保留给系统返回手势，避免与页面右滑切换冲突。
-    if (deltaX > 0 && (startX <= EDGE_BACK_GUARD || absDeltaX < RIGHT_SWIPE_MIN_DISTANCE)) {
-      return
-    }
-
-    const nextIndex = deltaX < 0
-      ? this.daySlideIndex + 1
-      : this.daySlideIndex - 1
-    this.applyDaySlideIndex(nextIndex, true)
+  goNextDay() {
+    this.applyDaySlideIndex(this.daySlideIndex + 1, true)
   },
 
   openSettings() {
@@ -394,6 +432,8 @@ export default {
   afterLoad() {
     const semesterStartDate = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate
     const hasSemesterStartDate = !!semesterStartDate
+    const showTeacher = this.scheduleData && this.scheduleData.config && this.scheduleData.config.showTeacher
+    this.showTeacher = showTeacher !== false
     this.selectedDay = normalizeDay(this.selectedDay)
     const selectedDate = addDays(new Date(), this.selectedOffsetDays || 0)
     this.selectedDateKey = formatDate(selectedDate)
@@ -444,6 +484,7 @@ export default {
     const source = (this.scheduleData && this.scheduleData.courses) || []
     const dayCourses = []
     const currentWeekCourses = []
+    const isToday = (this.selectedOffsetDays || 0) === 0
     for (let i = 0; i < source.length; i += 1) {
       const item = source[i]
       if (item.day !== this.selectedDay) {
@@ -462,9 +503,12 @@ export default {
         id: item.id,
         name: item.name,
         position: item.position || "",
+        teacher: item.teacher || "",
         startSection: item.startSection,
         customStartTime: item.customStartTime || "",
-        timeText: timeText
+        timeText: timeText,
+        isOngoing: isCourseOngoing(item, startSlot, endSlot, isToday),
+        progressPercent: courseProgressPercent(item, startSlot, endSlot, isToday)
       }
       dayCourses.push(normalized)
 
@@ -505,26 +549,44 @@ export default {
 
 .week-text {
   color: #ffffff;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
 }
 
 .date-row {
-  flex-direction: row;
-  width: 100%;
-  margin-top: 6px;
+  flex-direction: column;
+  margin-top: 2px;
   align-items: center;
   justify-content: center;
 }
 
-.day-text {
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 700;
+.date-switch-row {
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
 }
 
-.date-text {
+.date-center-wrap {
+  width: 36%;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-arrow-button {
+  width: 42px;
+  height: 42px;
   margin-left: 10px;
+  margin-right: 10px;
+  border-radius: 50%;
+  border-width: 2px;
+  border-color: #3b3b3b;
+  background-color: #111111;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-arrow-text, .day-text, .date-text {
   color: #ffffff;
   font-size: 22px;
   font-weight: 700;
@@ -534,10 +596,7 @@ export default {
   flex: 1;
   width: 100%;
   flex-direction: column;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 12px;
-  padding-bottom: 8px;
+  padding: 10px;
 }
 
 .course-content {
@@ -556,10 +615,28 @@ export default {
   flex-direction: column;
   width: 100%;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 16px;
   border-width: 2px;
   border-color: #3b3b3b;
   background-color: #090909;
+}
+
+.course-card-ongoing {
+  background-color: #237bff;
+}
+
+.ongoing-progress-track {
+  width: 100%;
+  height: 8px;
+  margin-top: 10px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.ongoing-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background-color: #ffffff;
 }
 
 .course-name {
@@ -583,12 +660,6 @@ export default {
   justify-content: center;
 }
 
-.action-wrap {
-  flex-direction: column;
-  width: 100%;
-  align-items: center;
-}
-
 .empty-text {
   color: #ffffff;
   font-size: 28px;
@@ -596,10 +667,15 @@ export default {
 }
 
 .settings-button {
-  width: 50%;
-  height: 52px;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  z-index: 10;
+  width: 58%;
+  height: 62px;
+  margin-left: auto;
+  margin-right: auto;
   border-radius: 30px;
   border-width: 2px;
   border-color: #3b3b3b;
@@ -611,5 +687,19 @@ export default {
 .settings-icon {
   width: 40px;
   height: 40px;
+}
+
+@media (shape: rect) {
+  .date-row {
+    flex-direction: row;
+  }
+
+  .date-text {
+    margin-left: 10px;
+  }
+
+  .settings-button {
+    width: 32%;
+  }
 }
 </style>
