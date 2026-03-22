@@ -22,14 +22,12 @@
       <scroll class="course-list-scroll" scroll-y="true" if="{{ !notStarted && hasCourses }}">
         <block for="{{ displayCourses }}" tid="id">
           <div class="course-row">
-            <div class="{{ $item.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}">
+            <div class="{{ $item.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}" onclick="openCourseDetail($item)">
               <text class="course-name">{{ $item.name }}</text>
               <text class="course-meta">{{ $item.timeText }}</text>
               <text class="course-meta">{{ $item.position }}</text>
               <text class="course-meta" if="{{ showTeacher && $item.teacher }}">{{ $item.teacher }}</text>
-              <div class="ongoing-progress-track" if="{{ $item.isOngoing }}">
-                <div class="ongoing-progress-fill" style="{{ 'width:' + $item.progressPercent + '%;' }}"></div>
-              </div>
+              <progress class="course-progress" if="{{ $item.isOngoing }}" percent="{{ $item.progressPercent }}" type="horizontal"></progress>
             </div>
           </div>
         </block>
@@ -525,6 +523,15 @@ export default {
     target.sort((a, b) => sectionSortValue(a) - sectionSortValue(b))
     this.displayCourses = target
     this.hasCourses = target.length > 0
+  },
+
+  openCourseDetail(course) {
+    router.push({
+      uri: "/pages/detail",
+      params: {
+        course: course
+      }
+    })
   }
 }
 </script>
@@ -625,18 +632,12 @@ export default {
   background-color: #237bff;
 }
 
-.ongoing-progress-track {
+.course-progress {
   width: 100%;
-  height: 8px;
   margin-top: 10px;
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.ongoing-progress-fill {
-  height: 100%;
-  border-radius: 4px;
-  background-color: #ffffff;
+  stroke-width: 8px;
+  color: #ffffff;
+  layer-color: rgba(255, 255, 255, 0.3);
 }
 
 .course-name {

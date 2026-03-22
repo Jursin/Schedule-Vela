@@ -1,0 +1,76 @@
+<template>
+  <div class="page">
+    <text class="title">关于</text>
+    <image class="app-icon" src="{{ appInfo.icon }}"></image>
+    <text class="app-name">{{ appInfo.name }}</text>
+    <text class="app-meta">版本名称：{{ appInfo.versionName }}</text>
+    <text class="app-meta">版本号：{{ appInfo.versionCode }}</text>
+    <text class="app-meta">开发者: Jursin</text>
+  </div>
+</template>
+
+<script>
+import app from '@system.app'
+
+export default {
+  private: {
+    appInfo: {
+      icon: '',
+      name: '',
+      versionName: '',
+      versionCode: ''
+    }
+  },
+
+  onInit() {
+    const info = app.getInfo()
+    if (info) {
+      this.appInfo = {
+        icon: info.icon || '',
+        name: info.name || '',
+        versionName: info.versionName || '',
+        versionCode: info.versionCode || ''
+      }
+    }
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding-top: 18px;
+  padding-bottom: 6px;
+  background-color: #000000;
+  align-items: center;
+}
+
+.title {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 30px;
+}
+
+.app-icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 30px;
+}
+
+.app-name {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 15px;
+}
+
+.app-meta {
+  color: #cccccc;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+</style>

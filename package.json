@@ -1,6 +1,6 @@
 {
   "name": "schedule-vela",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "适用于 Vela 设备的课程表快应用",
   "engines": {
     "node": ">=8.10"

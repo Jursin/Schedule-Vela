@@ -1,0 +1,154 @@
+<template>
+  <div class="page">
+    <div class="time-section">
+      <text class="current-time">{{ currentTime }}</text>
+    </div>
+    <div class="course-section">
+      <text class="course-name">{{ course.name }}</text>
+      <text class="course-time">{{ course.timeText }}</text>
+      <text class="course-location">{{ course.position }}</text>
+      <text class="course-teacher" if="{{ course.teacher }}">{{ course.teacher }}</text>
+      <text class="remaining-time" if="{{ course.isOngoing }}">还剩 {{ remainingMinutes }} 分钟</text>
+      <progress class="course-progress" if="{{ course.isOngoing }}" percent="{{ course.progressPercent }}" type="horizontal"></progress>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  private: {
+    currentTime: "",
+    course: {
+      name: "",
+      timeText: "",
+      position: "",
+      teacher: "",
+      isOngoing: false,
+      progressPercent: 0
+    },
+    remainingMinutes: 0,
+    timer: null
+  },
+
+  protected: {
+    course: null
+  },
+
+  onInit() {
+    if (this.course) {
+      // 由于 params 会将对象转换为字符串，需要解析
+      try {
+        const courseData = typeof this.course === 'string' ? JSON.parse(this.course) : this.course
+        this.course = courseData
+        this.calculateRemainingTime()
+      } catch (e) {
+        console.error('Failed to parse course data:', e)
+      }
+    }
+    this.updateCurrentTime()
+    this.timer = setInterval(() => {
+      this.updateCurrentTime()
+      if (this.course.isOngoing) {
+        this.calculateRemainingTime()
+      }
+    }, 1000)
+  },
+
+  onDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer)
+    }
+  },
+
+  updateCurrentTime() {
+    const now = new Date()
+    const hours = String(now.getHours()).padStart(2, "0")
+    const minutes = String(now.getMinutes()).padStart(2, "0")
+    const seconds = String(now.getSeconds()).padStart(2, "0")
+    this.currentTime = `${hours}:${minutes}:${seconds}`
+  },
+
+  calculateRemainingTime() {
+    if (!this.course.isOngoing) return
+    
+    const timeText = this.course.timeText
+    if (!timeText) return
+    
+    const timeParts = timeText.split("-")
+    if (timeParts.length !== 2) return
+    
+    const endTime = timeParts[1]
+    const [endHour, endMinute] = endTime.split(":").map(Number)
+    
+    const now = new Date()
+    const currentHour = now.getHours()
+    const currentMinute = now.getMinutes()
+    
+    const totalEndMinutes = endHour * 60 + endMinute
+    const totalCurrentMinutes = currentHour * 60 + currentMinute
+    
+    this.remainingMinutes = Math.max(0, totalEndMinutes - totalCurrentMinutes)
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  padding: 65px 10px;
+}
+
+.time-section {
+  margin-bottom: 18px;
+}
+
+.current-time {
+  color: #ffffff;
+  font-size: 38px;
+  font-weight: 700;
+}
+
+.course-section {
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+}
+
+.course-name {
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.course-time,
+.course-location,
+.course-teacher {
+  color: #cccccc;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.remaining-time {
+  color: #237bff;
+  font-size: 25px;
+  font-weight: 700;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.course-progress {
+  width: 100%;
+  margin-top: 10px;
+  stroke-width: 10px;
+  color: #237bff;
+  layer-color: rgba(255, 255, 255, 0.2);
+}
+</style>

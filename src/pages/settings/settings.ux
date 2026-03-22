@@ -19,6 +19,9 @@
       <list-item type="default" class="settings-item settings-item-warn" onclick="clearSchedule">
         <text class="item-text item-text-warn">{{ clearConfirming ? '确认清除' : '清除配置' }}</text>
       </list-item>
+      <list-item type="default" class="settings-item" onclick="openAbout">
+        <text class="item-text">关于</text>
+      </list-item>
     </list>
   </div>
 </template>
@@ -137,6 +140,12 @@ export default {
       params: {
         semesterStartDate: this.semesterStartDate
       }
+    })
+  },
+
+  openAbout() {
+    router.push({
+      uri: "/pages/about"
     })
   },
 

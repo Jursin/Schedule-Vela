@@ -1,8 +1,8 @@
 {
   "package": "com.schedule.vela",
   "name": "腕上课程表",
-  "versionName": "1.2.0",
-  "versionCode": 3,
+  "versionName": "1.2.1",
+  "versionCode": 4,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
   "deviceTypeList": [
@@ -20,6 +20,9 @@
     },
     {
       "name": "system.interconnect"
+    },
+    {
+      "name": "system.app"
     }
   ],
   "config": {
@@ -32,11 +35,17 @@
       "pages/index": {
         "component": "index"
       },
+      "pages/detail": {
+        "component": "detail"
+      },
       "pages/settings": {
         "component": "settings"
       },
       "pages/date-picker": {
         "component": "date-picker"
+      },
+      "pages/about": {
+        "component": "about"
       }
     }
   }
