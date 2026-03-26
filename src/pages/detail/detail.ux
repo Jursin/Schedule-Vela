@@ -9,6 +9,7 @@
       <text class="course-location">{{ course.position }}</text>
       <text class="course-teacher" if="{{ course.teacher }}">{{ course.teacher }}</text>
       <text class="remaining-time" if="{{ showUpcomingReminder }}">还剩{{ upcomingMinutes }}分钟上课</text>
+      <progress class="course-progress" if="{{ showUpcomingReminder }}" percent="{{ upcomingProgressPercent }}" type="horizontal"></progress>
       <text class="remaining-time" if="{{ course.isOngoing }}">还剩{{ remainingMinutes }}分钟下课</text>
       <progress class="course-progress" if="{{ course.isOngoing }}" percent="{{ course.progressPercent }}" type="horizontal"></progress>
     </div>
@@ -27,9 +28,11 @@ export default {
       isOngoing: false,
       progressPercent: 0
     },
+    todayCourses: [],
     remainingMinutes: 0,
     upcomingMinutes: 0,
     showUpcomingReminder: false,
+    upcomingProgressPercent: 0,
     timer: null
   },
 
@@ -38,17 +41,18 @@ export default {
   },
 
   onInit() {
-    if (this.course) {
-      // 由于 params 会将对象转换为字符串，需要解析
-      try {
-        const courseData = typeof this.course === 'string' ? JSON.parse(this.course) : this.course
-        this.course = courseData
-        this.calculateRemainingTime()
-        this.calculateUpcomingReminder()
-      } catch (e) {
-        console.error('Failed to parse course data:', e)
+    // 解析参数
+    try {
+      const courseData = typeof this.course === 'string' ? JSON.parse(this.course) : this.course
+      this.course = courseData
+      if (this.todayCourses) {
+        this.todayCourses = typeof this.todayCourses === 'string' ? JSON.parse(this.todayCourses) : this.todayCourses
       }
+    } catch (e) {
+      console.error('Failed to parse params:', e)
     }
+    this.calculateRemainingTime()
+    this.calculateUpcomingReminder()
     this.updateCurrentTime()
     this.timer = setInterval(() => {
       this.updateCurrentTime()
@@ -95,31 +99,82 @@ export default {
     this.remainingMinutes = Math.max(0, totalEndMinutes - totalCurrentMinutes)
   },
 
-  // 计算上课提醒，仅当天最近一节课且提前30分钟内显示
+  // 上课提醒和进度条
   calculateUpcomingReminder() {
     // 只针对当天课程
-    const timeText = this.course.timeText
-    if (!timeText) {
+    if (!this.todayCourses || !Array.isArray(this.todayCourses) || this.todayCourses.length === 0) {
       this.showUpcomingReminder = false
       return
     }
-    const timeParts = timeText.split("-")
-    if (timeParts.length !== 2) {
-      this.showUpcomingReminder = false
-      return
-    }
-    const startTime = timeParts[0]
-    const [startHour, startMinute] = startTime.split(":").map(Number)
+    // 取当天课程按开始时间排序
+    const sorted = this.todayCourses.slice().sort((a, b) => {
+      const t1 = a.timeText && a.timeText.split("-")[0]
+      const t2 = b.timeText && b.timeText.split("-")[0]
+      if (!t1 || !t2) return 0
+      const [h1, m1] = t1.split(":").map(Number)
+      const [h2, m2] = t2.split(":").map(Number)
+      return h1 * 60 + m1 - (h2 * 60 + m2)
+    })
     const now = new Date()
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-    const totalStartMinutes = startHour * 60 + startMinute
-    const totalCurrentMinutes = currentHour * 60 + currentMinute
-    const diff = totalStartMinutes - totalCurrentMinutes
-    // 仅未开始，且30分钟内
-    if (diff > 0 && diff <= 30 && !this.course.isOngoing) {
-      this.upcomingMinutes = diff
+    const currentMinutes = now.getHours() * 60 + now.getMinutes()
+    // 构造所有区间
+    let intervals = []
+    // 07:00 到第一节课
+    if (sorted.length > 0) {
+      const firstStart = sorted[0].timeText && sorted[0].timeText.split("-")[0]
+      if (firstStart) {
+        const [h, m] = firstStart.split(":").map(Number)
+        const startMin = h * 60 + m
+        intervals.push({
+          from: 7 * 60,
+          to: startMin,
+          courseId: sorted[0].id,
+          courseStart: startMin,
+          courseName: sorted[0].name
+        })
+      }
+    }
+    // 两节课之间
+    for (let i = 1; i < sorted.length; i++) {
+      const prevEnd = sorted[i - 1].timeText && sorted[i - 1].timeText.split("-")[1]
+      const currStart = sorted[i].timeText && sorted[i].timeText.split("-")[0]
+      if (prevEnd && currStart) {
+        const [ph, pm] = prevEnd.split(":").map(Number)
+        const [ch, cm] = currStart.split(":").map(Number)
+        const prevEndMin = ph * 60 + pm
+        const currStartMin = ch * 60 + cm
+        if (currStartMin > prevEndMin) {
+          intervals.push({
+            from: prevEndMin,
+            to: currStartMin,
+            courseId: sorted[i].id,
+            courseStart: currStartMin,
+            courseName: sorted[i].name
+          })
+        }
+      }
+    }
+    // 判断当前时间是否在某个区间，且当前详情页课程为该区间即将开始的课程
+    let matched = null
+    for (let i = 0; i < intervals.length; i++) {
+      const itv = intervals[i]
+      if (
+        currentMinutes >= itv.from &&
+        currentMinutes < itv.to &&
+        this.course && this.course.id === itv.courseId
+      ) {
+        matched = itv
+        break
+      }
+    }
+    if (matched) {
+      this.upcomingMinutes = matched.to - currentMinutes
       this.showUpcomingReminder = true
+      // 进度条百分比 = (currentMinutes - from) / (to - from)
+      let percent = Math.floor(((currentMinutes - matched.from) * 100) / (matched.to - matched.from))
+      if (percent < 0) percent = 0
+      if (percent > 100) percent = 100
+      this.upcomingProgressPercent = percent
     } else {
       this.showUpcomingReminder = false
     }

@@ -611,10 +611,12 @@ export default {
   },
 
   openCourseDetail(course) {
+    // 跳转课程详情页时，传递当天全部课程
     router.push({
       uri: "/pages/detail",
       params: {
-        course: course
+        course: course,
+        todayCourses: JSON.stringify(this.displayCourses)
       }
     })
   }
