@@ -1,8 +1,8 @@
 {
   "package": "com.schedule.vela",
   "name": "腕上课程表",
-  "versionName": "1.2.3",
-  "versionCode": 6,
+  "versionName": "1.2.4",
+  "versionCode": 7,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
   "deviceTypeList": [
