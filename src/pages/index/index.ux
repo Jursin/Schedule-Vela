@@ -20,67 +20,27 @@
 
     <div class="course-content">
       <scroll class="course-list-scroll" scroll-y="true" if="{{ !notStarted && hasCourses }}">
-        <block if="{{ morningCourses.length > 0 }}">
-          <text class="section-title">上午</text>
-          <block for="{{ morningCourses }}" tid="id">
-            <div class="course-row">
-              <div class="{{ $item.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}" onclick="openCourseDetail($item)">
-                <text class="course-name">{{ $item.name }}</text>
-                <text class="course-meta">{{ $item.timeText }}</text>
-                <text class="course-meta" if="{{ $item.position }}">{{ $item.position }}</text>
-                <text class="course-meta" if="{{ $item.teacher }}">{{ $item.teacher }}</text>
-                <progress class="course-progress" if="{{ $item.isOngoing }}" percent="{{ $item.progressPercent }}" type="horizontal"></progress>
+        <block for="{{ group in courseGroups }}">
+          <block if="{{ group.courses.length > 0 }}">
+            <text class="section-title">{{ group.title }}</text>
+            <block for="{{ course in group.courses }}">
+              <div class="course-row">
+                <div class="{{ course.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}" onclick="openCourseDetail(course)">
+                  <text class="course-name">{{ course.name }}</text>
+                  <text class="course-meta">{{ course.timeText }}</text>
+                  <text class="course-meta" if="{{ course.position }}">{{ course.position }}</text>
+                  <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
+                  <progress class="course-progress" if="{{ course.isOngoing }}" percent="{{ course.progressPercent }}" type="horizontal"></progress>
+                </div>
               </div>
-            </div>
-          </block>
-        </block>
-        <block if="{{ noonCourses.length > 0 }}">
-          <text class="section-title">中午</text>
-          <block for="{{ noonCourses }}" tid="id">
-            <div class="course-row">
-              <div class="{{ $item.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}" onclick="openCourseDetail($item)">
-                <text class="course-name">{{ $item.name }}</text>
-                <text class="course-meta">{{ $item.timeText }}</text>
-                <text class="course-meta" if="{{ $item.position }}">{{ $item.position }}</text>
-                <text class="course-meta" if="{{ $item.teacher }}">{{ $item.teacher }}</text>
-                <progress class="course-progress" if="{{ $item.isOngoing }}" percent="{{ $item.progressPercent }}" type="horizontal"></progress>
-              </div>
-            </div>
-          </block>
-        </block>
-        <block if="{{ afternoonCourses.length > 0 }}">
-          <text class="section-title">下午</text>
-          <block for="{{ afternoonCourses }}" tid="id">
-            <div class="course-row">
-              <div class="{{ $item.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}" onclick="openCourseDetail($item)">
-                <text class="course-name">{{ $item.name }}</text>
-                <text class="course-meta">{{ $item.timeText }}</text>
-                <text class="course-meta" if="{{ $item.position }}">{{ $item.position }}</text>
-                <text class="course-meta" if="{{ $item.teacher }}">{{ $item.teacher }}</text>
-                <progress class="course-progress" if="{{ $item.isOngoing }}" percent="{{ $item.progressPercent }}" type="horizontal"></progress>
-              </div>
-            </div>
-          </block>
-        </block>
-        <block if="{{ eveningCourses.length > 0 }}">
-          <text class="section-title">晚上</text>
-          <block for="{{ eveningCourses }}" tid="id">
-            <div class="course-row">
-              <div class="{{ $item.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}" onclick="openCourseDetail($item)">
-                <text class="course-name">{{ $item.name }}</text>
-                <text class="course-meta">{{ $item.timeText }}</text>
-                <text class="course-meta" if="{{ $item.position }}">{{ $item.position }}</text>
-                <text class="course-meta" if="{{ $item.teacher }}">{{ $item.teacher }}</text>
-                <progress class="course-progress" if="{{ $item.isOngoing }}" percent="{{ $item.progressPercent }}" type="horizontal"></progress>
-              </div>
-            </div>
+            </block>
           </block>
         </block>
       </scroll>
 
-      <div class="state-wrap" if="{{ semesterStartDateMissing || notStarted || !hasCourses }}">
+      <div class="state-wrap" if="{{ semesterStartDateMissing || semesterTotalWeeksMissing || notStarted || !hasCourses }}">
         <image class="empty-icon" src="/common/rest.png"></image>
-        <text class="empty-text">{{ semesterStartDateMissing ? '请先设置开学日期' : (notStarted ? '暂未开学' : '今日无课程') }}</text>
+        <text class="empty-text">{{ semesterStartDateMissing ? '请先设置开学日期' : (semesterTotalWeeksMissing ? '请先设置学期周数' : (notStarted ? '暂未开学' : '今日无课程')) }}</text>
       </div>
     </div>
 
@@ -97,7 +57,7 @@ import interconnect from "@system.interconnect"
 import prompt from "@system.prompt"
 
 // 示例课表数据（开发/调试用）
-const exampleSchedule = require("../../common/example-schedule.js")
+// const exampleSchedule = require("../../common/example-schedule.js")
 
 const STORAGE_KEY = "schedule_data"
 const conn = interconnect.instance()
@@ -109,8 +69,7 @@ function createEmptySchedule() {
     courses: [],
     timeSlots: [],
     config: {
-      semesterStartDate: "",
-      showTeacher: true
+      semesterStartDate: ""
     }
   }
 }
@@ -139,18 +98,26 @@ function weekFromStart(startDate, targetDate) {
   return Math.floor(diffDays / 7) + 1
 }
 
-function maxWeekInCourses(courses) {
+function maxWeekInCourses(courses, configTotalWeeks) {
   if (!Array.isArray(courses) || courses.length === 0) {
     return 0
   }
   let max = 0
   for (let i = 0; i < courses.length; i += 1) {
-    const weeks = courses[i].weeks
-    if (Array.isArray(weeks)) {
+    const item = courses[i]
+    const limit = configTotalWeeks || 100
+    const weeks = item.weeks
+    
+    if (Array.isArray(weeks) && weeks.length > 0) {
       for (let j = 0; j < weeks.length; j += 1) {
-        if (weeks[j] > max) {
-          max = weeks[j]
+        let w = weeks[j]
+        if (w <= limit && w > max) {
+          max = w
         }
+      }
+    } else if (item.weekType) {
+      if (limit < 100 && limit > max) {
+        max = limit
       }
     }
   }
@@ -209,9 +176,6 @@ function normalizeScheduleData(data) {
   }
   if (!normalized.config.semesterStartDate) {
     normalized.config.semesterStartDate = ""
-  }
-  if (normalized.config.showTeacher === undefined) {
-    normalized.config.showTeacher = true
   }
   return normalized
 }
@@ -353,19 +317,16 @@ export default {
     selectedDay: dayOfWeekFromToday(),
     selectedDayText: dayText(dayOfWeekFromToday()),
     selectedDateText: formatMonthDay(new Date()),
-    selectedDateKey: formatDate(new Date()),
     selectedOffsetDays: 0,
     daySlideIndex: DAY_SLIDE_CENTER,
     displayCourses: [],
     hasCourses: false,
     notStarted: false,
     semesterStartDateMissing: false,
+    semesterTotalWeeksMissing: false,
     currentWeek: 0,
     currentWeekText: "-",
-    morningCourses: [],
-    noonCourses: [],
-    afternoonCourses: [],
-    eveningCourses: []
+    courseGroups: []
   },
 
   onInit() {
@@ -399,7 +360,6 @@ export default {
     const offset = nextIndex - DAY_SLIDE_CENTER
     const selectedDate = addDays(new Date(), offset)
     this.selectedOffsetDays = offset
-    this.selectedDateKey = formatDate(selectedDate)
     this.selectedDateText = formatMonthDay(selectedDate)
     this.selectedDay = dayOfWeekFromDate(selectedDate)
     this.selectedDayText = dayText(this.selectedDay)
@@ -495,15 +455,18 @@ export default {
 
   afterLoad() {
     const semesterStartDate = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate
+    const rawSemesterTotalWeeks = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks
+    const semesterTotalWeeks = Number(rawSemesterTotalWeeks)
     const hasSemesterStartDate = !!semesterStartDate
+    const hasSemesterTotalWeeks = !isNaN(semesterTotalWeeks) && semesterTotalWeeks > 0
     this.selectedDay = normalizeDay(this.selectedDay)
     const selectedDate = addDays(new Date(), this.selectedOffsetDays || 0)
-    this.selectedDateKey = formatDate(selectedDate)
     this.selectedDateText = formatMonthDay(selectedDate)
     this.selectedDay = dayOfWeekFromDate(selectedDate)
     this.selectedDayText = dayText(this.selectedDay)
     if (!hasSemesterStartDate) {
       this.semesterStartDateMissing = true
+      this.semesterTotalWeeksMissing = false
       this.currentWeek = 0
       this.currentWeekText = "-"
       this.notStarted = false
@@ -513,6 +476,17 @@ export default {
     }
 
     this.semesterStartDateMissing = false
+    if (!hasSemesterTotalWeeks) {
+      this.semesterTotalWeeksMissing = true
+      this.currentWeek = 0
+      this.currentWeekText = "-"
+      this.notStarted = false
+      this.displayCourses = []
+      this.hasCourses = false
+      return
+    }
+
+    this.semesterTotalWeeksMissing = false
 
     this.currentWeek = weekFromStart(
       this.scheduleData &&
@@ -521,7 +495,8 @@ export default {
       selectedDate
     )
     const courses = (this.scheduleData && this.scheduleData.courses) || []
-    const maxWeek = maxWeekInCourses(courses)
+    const configTotalWeeks = semesterTotalWeeks
+    const maxWeek = maxWeekInCourses(courses, configTotalWeeks)
     if (this.currentWeek < 0) {
       this.notStarted = true
       this.currentWeekText = "-"
@@ -565,7 +540,6 @@ export default {
         timeText = startSlot.startTime + "-" + endSlot.endTime
       }
       const normalized = {
-        id: item.id,
         name: item.name,
         position: item.position || "",
         teacher: item.teacher || "",
@@ -577,8 +551,28 @@ export default {
       }
       dayCourses.push(normalized)
 
-      const hasWeekRule = item.weeks && item.weeks.length
-      if (!hasWeekRule || item.weeks.indexOf(this.currentWeek) >= 0) {
+      const semesterTotalWeeks = (this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks) || 100
+      let showInCurrentWeek = false
+
+      if (item.weeks && item.weeks.length) {
+        if (this.currentWeek <= semesterTotalWeeks && item.weeks.indexOf(this.currentWeek) >= 0) {
+          showInCurrentWeek = true
+        }
+      } else if (item.weekType) {
+        if (this.currentWeek > 0 && this.currentWeek <= semesterTotalWeeks) {
+          if (item.weekType === "all") {
+            showInCurrentWeek = true
+          } else if (item.weekType === "odd" && this.currentWeek % 2 === 1) {
+            showInCurrentWeek = true
+          } else if (item.weekType === "even" && this.currentWeek % 2 === 0) {
+            showInCurrentWeek = true
+          }
+        }
+      } else {
+        showInCurrentWeek = true
+      }
+
+      if (showInCurrentWeek) {
         currentWeekCourses.push(normalized)
       }
     }
@@ -592,10 +586,11 @@ export default {
     this.hasCourses = target.length > 0
 
     // 课程分组：仅按结束时间分组
-    this.morningCourses = []
-    this.noonCourses = []
-    this.afternoonCourses = []
-    this.eveningCourses = []
+    const morning = []
+    const noon = []
+    const afternoon = []
+    const evening = []
+
     for (let i = 0; i < target.length; i++) {
       const course = target[i]
       // 解析结束时间
@@ -605,16 +600,24 @@ export default {
       }
       const [endHour, endMinute] = endTime ? endTime.split(":").map(Number) : [0, 0]
       const endMinutes = endHour * 60 + endMinute
+      
       if (endMinutes < 12 * 60) {
-        this.morningCourses.push(course)
+        morning.push(course)
       } else if (endMinutes <= 14 * 60) {
-        this.noonCourses.push(course)
+        noon.push(course)
       } else if (endMinutes <= 19 * 60) {
-        this.afternoonCourses.push(course)
+        afternoon.push(course)
       } else {
-        this.eveningCourses.push(course)
+        evening.push(course)
       }
     }
+
+    this.courseGroups = [
+      { title: "上午", courses: morning },
+      { title: "中午", courses: noon },
+      { title: "下午", courses: afternoon },
+      { title: "晚上", courses: evening }
+    ]
   },
 
   openCourseDetail(course) {
@@ -642,8 +645,7 @@ export default {
 .header-wrap {
   flex-direction: column;
   width: 100%;
-  padding-top: 18px;
-  padding-bottom: 6px;
+  padding: 18px 0 6px;
   align-items: center;
   justify-content: center;
 }
@@ -677,8 +679,7 @@ export default {
 .date-arrow-button {
   width: 42px;
   height: 42px;
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 0 10px;
   border-radius: 50%;
   border-width: 2px;
   border-color: #3b3b3b;
@@ -760,6 +761,7 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  margin-bottom: 40px;
 }
 
 .empty-icon {
@@ -783,8 +785,6 @@ export default {
   z-index: 10;
   width: 58%;
   height: 64px;
-  margin-left: auto;
-  margin-right: auto;
   border-radius: 30px;
   border-width: 2px;
   border-color: #3b3b3b;

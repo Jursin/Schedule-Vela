@@ -12,6 +12,15 @@
           <text class="item-arrow">&gt;</text>
         </div>
       </list-item>
+      <list-item type="default" class="settings-item settings-item-date" onclick="openWeekPicker">
+        <div class="item-main-row">
+          <div class="item-left-col">
+            <text class="item-text">学期周数</text>
+            <text class="item-subtext" if="{{ semesterTotalWeeks }}">{{ semesterTotalWeeks }} 周</text>
+          </div>
+          <text class="item-arrow">&gt;</text>
+        </div>
+      </list-item>
       <list-item type="default" class="settings-item settings-item-warn" onclick="clearSchedule">
         <text class="item-text item-text-warn">{{ clearConfirming ? '确认清除' : '清除配置' }}</text>
       </list-item>
@@ -35,8 +44,7 @@ function createEmptySchedule() {
     courses: [],
     timeSlots: [],
     config: {
-      semesterStartDate: "",
-      showTeacher: true
+      semesterStartDate: ""
     }
   }
 }
@@ -59,18 +67,11 @@ function validateSchedule(data) {
   return true
 }
 
-function readShowTeacher(config) {
-  if (!config || config.showTeacher === undefined) {
-    return true
-  }
-  return config.showTeacher !== false
-}
-
 export default {
   private: {
     scheduleData: createEmptySchedule(),
     semesterStartDate: "",
-    showTeacher: true,
+    semesterTotalWeeks: "",
     clearConfirming: false
   },
 
@@ -83,6 +84,13 @@ export default {
   },
 
   loadData() {
+    const resetState = () => {
+      this.scheduleData = createEmptySchedule()
+      this.semesterStartDate = ""
+      this.semesterTotalWeeks = ""
+      this.clearConfirming = false
+    }
+
     storage.get({
       key: STORAGE_KEY,
       success: raw => {
@@ -90,43 +98,14 @@ export default {
         if (validateSchedule(data)) {
           this.scheduleData = data
           this.semesterStartDate = (data.config && data.config.semesterStartDate) || ""
-          this.showTeacher = readShowTeacher(data.config)
+          this.semesterTotalWeeks = (data.config && data.config.semesterTotalWeeks) || ""
           this.clearConfirming = false
           return
         }
-        this.scheduleData = createEmptySchedule()
-        this.semesterStartDate = ""
-        this.showTeacher = true
-        this.clearConfirming = false
+        resetState()
       },
       fail: () => {
-        this.scheduleData = createEmptySchedule()
-        this.semesterStartDate = ""
-        this.showTeacher = true
-        this.clearConfirming = false
-      }
-    })
-  },
-
-  onShowTeacherChange(event) {
-    const raw = event && (event.checked !== undefined ? event.checked : event.value)
-    const nextShowTeacher = raw === true || raw === 1 || raw === "1" || raw === "true"
-    this.showTeacher = nextShowTeacher
-    if (!this.scheduleData || typeof this.scheduleData !== "object") {
-      this.scheduleData = createEmptySchedule()
-    }
-    if (!this.scheduleData.config || typeof this.scheduleData.config !== "object") {
-      this.scheduleData.config = {}
-    }
-    this.scheduleData.config.showTeacher = nextShowTeacher
-    storage.set({
-      key: STORAGE_KEY,
-      value: JSON.stringify(this.scheduleData),
-      fail: () => {
-        prompt.showToast({
-          message: "保存失败",
-          duration: 2000
-        })
+        resetState()
       }
     })
   },
@@ -136,6 +115,15 @@ export default {
       uri: "/pages/date-picker",
       params: {
         semesterStartDate: this.semesterStartDate
+      }
+    })
+  },
+
+  openWeekPicker() {
+    router.push({
+      uri: "/pages/week-picker",
+      params: {
+        semesterTotalWeeks: this.semesterTotalWeeks
       }
     })
   },
@@ -156,6 +144,7 @@ export default {
       value: JSON.stringify(createEmptySchedule()),
       success: () => {
         this.semesterStartDate = ""
+        this.semesterTotalWeeks = ""
         this.clearConfirming = false
         // 清除成功后震动一次
         try {
@@ -174,10 +163,6 @@ export default {
         })
       }
     })
-  },
-
-  goBack() {
-    router.back()
   }
 }
 </script>
@@ -187,8 +172,7 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding-top: 18px;
-  padding-bottom: 6px;
+  padding: 18px 0 6px;
   background-color: #000000;
   align-items: center;
 }
@@ -219,8 +203,7 @@ export default {
 
 .settings-item-date {
   height: 95px;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding: 0 16px;
 }
 
 .item-main-row {

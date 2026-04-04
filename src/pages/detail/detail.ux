@@ -63,6 +63,14 @@ export default {
     }, 1000)
   },
 
+  courseMatchKey(course) {
+    if (!course || typeof course !== "object") {
+      return ""
+    }
+    // 使用名称+时间作为匹配键
+    return (course.name || "") + "|" + (course.timeText || "")
+  },
+
   onDestroy() {
     if (this.timer) {
       clearInterval(this.timer)
@@ -133,7 +141,8 @@ export default {
     const now = new Date()
     const currentMinutes = now.getHours() * 60 + now.getMinutes()
     // 构造所有区间
-    let intervals = []
+    const intervals = []
+    const currentCourseKey = this.courseMatchKey(this.course)
     // 07:00 到第一节课
     if (sorted.length > 0) {
       const firstStart = sorted[0].timeText && sorted[0].timeText.split("-")[0]
@@ -143,9 +152,7 @@ export default {
         intervals.push({
           from: 7 * 60,
           to: startMin,
-          courseId: sorted[0].id,
-          courseStart: startMin,
-          courseName: sorted[0].name
+          courseKey: this.courseMatchKey(sorted[0])
         })
       }
     }
@@ -162,9 +169,7 @@ export default {
           intervals.push({
             from: prevEndMin,
             to: currStartMin,
-            courseId: sorted[i].id,
-            courseStart: currStartMin,
-            courseName: sorted[i].name
+            courseKey: this.courseMatchKey(sorted[i])
           })
         }
       }
@@ -176,7 +181,7 @@ export default {
       if (
         currentMinutes >= itv.from &&
         currentMinutes < itv.to &&
-        this.course && this.course.id === itv.courseId
+        currentCourseKey && currentCourseKey === itv.courseKey
       ) {
         matched = itv
         break
@@ -243,8 +248,7 @@ export default {
   color: #237bff;
   font-size: 23px;
   font-weight: 700;
-  margin-top: 14px;
-  margin-bottom: 14px;
+  margin: 14px 0;
   text-align: center;
 }
 

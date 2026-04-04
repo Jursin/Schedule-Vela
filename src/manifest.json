@@ -47,6 +47,9 @@
       "pages/date-picker": {
         "component": "date-picker"
       },
+      "pages/week-picker": {
+        "component": "week-picker"
+      },
       "pages/about": {
         "component": "about"
       }

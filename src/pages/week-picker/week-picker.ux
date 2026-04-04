@@ -1,0 +1,222 @@
+<template>
+  <div class="page">
+    <text class="title">学期周数</text>
+
+    <picker
+      class="picker week-picker"
+      type="text"
+      range="{{ weekOptions }}"
+      selected="{{ weekIndex }}"
+      value="{{ weekIndex }}"
+      onchange="onWeekChange"
+    ></picker>
+
+    <div class="action-wrap">
+      <div class="confirm-button" onclick="saveAndBack">
+        <image class="confirm-icon" src="/common/tick.png"></image>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import storage from "@system.storage"
+import prompt from "@system.prompt"
+
+const STORAGE_KEY = "schedule_data"
+const WEEK_MIN = 10
+const WEEK_MAX = 30
+const DEFAULT_WEEK = 20
+
+function createEmptySchedule() {
+  return {
+    courses: [],
+    timeSlots: [],
+    config: {
+      semesterTotalWeeks: ""
+    }
+  }
+}
+
+function showToast(message) {
+  prompt.showToast({
+    message,
+    duration: 2000
+  })
+}
+
+export default {
+  private: {
+    weekOptions: [],
+    weekIndex: 0,
+    scheduleData: createEmptySchedule()
+  },
+
+  onInit() {
+    this.initPickerOptions()
+    this.loadData()
+  },
+
+  initPickerOptions() {
+    const weeks = []
+    for (let w = WEEK_MIN; w <= WEEK_MAX; w += 1) {
+      weeks.push(w + " 周")
+    }
+    this.weekOptions = weeks
+  },
+
+  applySavedOrDefault() {
+    const savedWeek = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks
+    let targetWeek = parseInt(savedWeek, 10)
+    
+    if (Number.isNaN(targetWeek) || targetWeek < WEEK_MIN || targetWeek > WEEK_MAX) {
+      targetWeek = DEFAULT_WEEK
+    }
+    
+    this.weekIndex = targetWeek - WEEK_MIN
+  },
+
+  getPickerIndex(event, options, fallbackIndex) {
+    const raw = event && (event.newValue !== undefined ? event.newValue : event.value)
+    if (raw === undefined || raw === null || raw === "") {
+      return fallbackIndex >= 0 ? fallbackIndex : 0
+    }
+    const text = raw + ""
+    const directIndex = Array.isArray(options) ? options.indexOf(text) : -1
+    if (directIndex >= 0) {
+      return directIndex
+    }
+
+    return fallbackIndex >= 0 ? fallbackIndex : 0
+  },
+
+  loadData() {
+    storage.get({
+      key: STORAGE_KEY,
+      success: raw => {
+        try {
+          const parsed = JSON.parse(raw)
+          if (parsed && typeof parsed === "object") {
+            this.scheduleData = parsed
+          } else {
+            this.scheduleData = createEmptySchedule()
+          }
+          this.applySavedOrDefault()
+        } catch (e) {
+          this.scheduleData = createEmptySchedule()
+          this.applySavedOrDefault()
+        }
+      },
+      fail: () => {
+        this.scheduleData = createEmptySchedule()
+        this.applySavedOrDefault()
+      }
+    })
+  },
+
+  onWeekChange(event) {
+    let nextIndex = this.getPickerIndex(event, this.weekOptions, this.weekIndex)
+    if (nextIndex >= this.weekOptions.length) {
+      nextIndex = this.weekOptions.length - 1
+    }
+    this.weekIndex = nextIndex
+  },
+
+  saveAndBack() {
+    if (!Array.isArray(this.scheduleData.courses)) {
+      this.scheduleData.courses = []
+    }
+    if (!Array.isArray(this.scheduleData.timeSlots)) {
+      this.scheduleData.timeSlots = []
+    }
+    if (!this.scheduleData.config) {
+      this.scheduleData.config = {}
+    }
+    
+    const selectedWeek = WEEK_MIN + this.weekIndex
+    this.scheduleData.config.semesterTotalWeeks = selectedWeek
+    
+    storage.set({
+      key: STORAGE_KEY,
+      value: JSON.stringify(this.scheduleData),
+      success: () => {
+        showToast("已保存")
+        router.back()
+      },
+      fail: () => {
+        showToast("保存失败")
+      }
+    })
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 18px 0 6px;
+  background-color: #000000;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.title {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.picker {
+  height: 300px;
+  color: #777777;
+  selected-color: #ffffff;
+  selected-font-size: 28px;
+  font-size: 26px;
+  text-align: center;
+}
+
+.week-picker {
+  margin-top: 20px;
+}
+
+.action-wrap {
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.confirm-button {
+  width: 58%;
+  height: 62px;
+  margin-bottom: 20px;
+  border-radius: 30px;
+  background-color: #287eff;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-icon {
+  width: 40px;
+  height: 40px;
+}
+
+@media (shape: rect) {
+  .title {
+    font-size: 30px;
+  }
+
+  .picker {
+    font-size: 28px;
+    selected-font-size: 30px;
+  }
+
+  .confirm-button {
+    width: 40%;
+  }
+}
+</style>

@@ -8,5 +8,6 @@
 
 .github/skills
 .trae/skills
+AGENTS.md
 
 src/common/example-schedule.js
