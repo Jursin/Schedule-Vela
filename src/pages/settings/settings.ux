@@ -218,7 +218,7 @@ export default {
 }
 
 .settings-item-date {
-  height: 84px;
+  height: 95px;
   padding-left: 16px;
   padding-right: 16px;
 }
@@ -239,31 +239,19 @@ export default {
 .item-subtext {
   margin-top: 4px;
   color: #aaaaaa;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
 }
 
 .item-arrow {
   color: #666666;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-}
-
-.settings-item-switch {
-  padding-left: 16px;
-  padding-right: 16px;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.item-switch {
-  width: 58px;
-  height: 32px;
 }
 
 .item-text {
   color: #ffffff;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 800;
 }
 
@@ -275,22 +263,21 @@ export default {
   color: #bd0000;
 }
 
-@media (shape: pill-shaped) {
+@media (shape: rect) {
+  .title {
+    font-size: 30px;
+  }
+
   .item-text {
-    font-size: 22px;
+    font-size: 26px;
   }
 
   .item-subtext {
-    font-size: 20px;
+    font-size: 24px;
   }
 
   .item-arrow {
-    font-size: 28px;
-  }
-
-  .item-switch {
-    width: 42px;
-    height: 28px;
+    font-size: 32px;
   }
 }
 </style>

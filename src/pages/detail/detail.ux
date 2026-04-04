@@ -5,9 +5,9 @@
     </div>
     <div class="course-section">
       <text class="course-name">{{ course.name }}</text>
-      <text class="course-time">{{ course.timeText }}</text>
-      <text class="course-location">{{ course.position }}</text>
-      <text class="course-teacher" if="{{ course.teacher }}">{{ course.teacher }}</text>
+      <text class="course-meta">{{ course.timeText }}</text>
+      <text class="course-meta">{{ course.position }}</text>
+      <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
       <text class="remaining-time" if="{{ showUpcomingReminder }}">还剩{{ upcomingMinutes }}分钟上课</text>
       <progress class="course-progress" if="{{ showUpcomingReminder }}" percent="{{ upcomingProgressPercent }}" type="horizontal"></progress>
       <text class="remaining-time" if="{{ course.isOngoing }}">还剩{{ remainingMinutes }}分钟下课</text>
@@ -208,7 +208,7 @@ export default {
 }
 
 .time-section {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .current-time {
@@ -227,17 +227,15 @@ export default {
   color: #ffffff;
   font-size: 30px;
   font-weight: 700;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   text-align: center;
 }
 
-.course-time,
-.course-location,
-.course-teacher {
+.course-meta {
   color: #cccccc;
   font-size: 28px;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
   text-align: center;
 }
 
@@ -245,8 +243,8 @@ export default {
   color: #237bff;
   font-size: 23px;
   font-weight: 700;
-  margin-top: 20px;
-  margin-bottom: 15px;
+  margin-top: 14px;
+  margin-bottom: 14px;
   text-align: center;
 }
 
@@ -256,5 +254,23 @@ export default {
   stroke-width: 10px;
   color: #237bff;
   layer-color: rgba(255, 255, 255, 0.2);
+}
+
+@media (shape: rect) {
+  .page {
+    padding: 45px 10px;
+  }
+
+  .current-time {
+    font-size: 60px;
+  }
+
+  .course-name {
+    font-size: 34px;
+  }
+
+  .course-meta {
+    font-size: 32px;
+  }
 }
 </style>

@@ -367,7 +367,7 @@ export default {
 }
 
 .confirm-button {
-  width: 56%;
+  width: 58%;
   height: 62px;
   margin-bottom: 20px;
   border-radius: 30px;
@@ -382,8 +382,17 @@ export default {
 }
 
 @media (shape: rect) {
+  .title {
+    font-size: 30px;
+  }
+
+  .picker {
+    font-size: 28px;
+    selected-font-size: 30px;
+  }
+
   .confirm-button {
-    width: 34%;
+    width: 40%;
   }
 }
 </style>

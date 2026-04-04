@@ -75,4 +75,23 @@ export default {
   margin-bottom: 8px;
   text-align: center;
 }
+
+@media (shape: rect) {
+  .app-icon {
+    width: 120px;
+    height: 120px;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .app-name {
+    font-size: 32px;
+  }
+
+  .app-meta {
+    font-size: 26px;
+  }
+}
 </style>

@@ -78,12 +78,9 @@
         </block>
       </scroll>
 
-      <div class="state-wrap" if="{{ notStarted }}">
-        <text class="empty-text">暂未开学</text>
-      </div>
-
-      <div class="state-wrap" if="{{ !notStarted && !hasCourses }}">
-        <text class="empty-text">今日无课程</text>
+      <div class="state-wrap" if="{{ semesterStartDateMissing || notStarted || !hasCourses }}">
+        <image class="empty-icon" src="/common/rest.png"></image>
+        <text class="empty-text">{{ semesterStartDateMissing ? '请先设置开学日期' : (notStarted ? '暂未开学' : '今日无课程') }}</text>
       </div>
     </div>
 
@@ -100,7 +97,7 @@ import interconnect from "@system.interconnect"
 import prompt from "@system.prompt"
 
 // 示例课表数据（开发/调试用）
-// const exampleSchedule = require("../../common/example-schedule.js")
+const exampleSchedule = require("../../common/example-schedule.js")
 
 const STORAGE_KEY = "schedule_data"
 const conn = interconnect.instance()
@@ -362,6 +359,7 @@ export default {
     displayCourses: [],
     hasCourses: false,
     notStarted: false,
+    semesterStartDateMissing: false,
     currentWeek: 0,
     currentWeekText: "-",
     morningCourses: [],
@@ -505,6 +503,7 @@ export default {
     this.selectedDay = dayOfWeekFromDate(selectedDate)
     this.selectedDayText = dayText(this.selectedDay)
     if (!hasSemesterStartDate) {
+      this.semesterStartDateMissing = true
       this.currentWeek = 0
       this.currentWeekText = "-"
       this.notStarted = false
@@ -512,6 +511,8 @@ export default {
       this.hasCourses = false
       return
     }
+
+    this.semesterStartDateMissing = false
 
     this.currentWeek = weekFromStart(
       this.scheduleData &&
@@ -761,10 +762,17 @@ export default {
   justify-content: center;
 }
 
+.empty-icon {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 14px;
+}
+
 .empty-text {
   color: #ffffff;
   font-size: 28px;
   font-weight: 700;
+  text-align: center;
 }
 
 .settings-button {
@@ -774,7 +782,7 @@ export default {
   bottom: 20px;
   z-index: 10;
   width: 58%;
-  height: 62px;
+  height: 64px;
   margin-left: auto;
   margin-right: auto;
   border-radius: 30px;
@@ -791,16 +799,54 @@ export default {
 }
 
 @media (shape: rect) {
+  .week-text {
+    font-size: 30px;
+  }
+
   .date-row {
     flex-direction: row;
+  }
+
+  .date-center-wrap {
+    width: 46%;
   }
 
   .date-text {
     margin-left: 10px;
   }
 
+  .date-arrow-text, .day-text, .date-text {
+    font-size: 26px;
+  }
+
+  .date-arrow-button {
+    width: 46px;
+    height: 46px;
+  }
+
+  .empty-icon {
+    width: 82px;
+    height: 82px;
+  }
+
+  .empty-text {
+    font-size: 32px;
+  }
+
+  .section-title {
+    font-size: 30px;
+  }
+
+  .course-name {
+    font-size: 28px;
+  }
+
+  .course-meta {
+    font-size: 24px;
+  }
+
   .settings-button {
-    width: 32%;
+    width: 40%;
   }
 }
 </style>
