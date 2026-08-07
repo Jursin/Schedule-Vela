@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "vela.aiot-core",
+    "vela.aiot-devtools",
+    "vela.aiot-emulator",
+    "vela.aiot-manifest-visualization",
+    "vela.aiot-project",
+    "vela.aiot-ux"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "velajs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "velajs-mcp"
+      ]
+    }
+  }
+}
