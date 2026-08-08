@@ -31,6 +31,16 @@
   ```
   npm install
   ```
+- 首次开发：初始化示例课表
+  ```
+  cp src/common/example-schedule.example.json src/common/example-schedule.json
+  ```
+- 代码检查与格式化
+  ```
+  npm run lint   # eslint 检查并自动修复
+  npm run format # prettier 一键格式化
+  npm run check  # prettier 格式检查
+  ```
 - 调试
   ```
   npm run start

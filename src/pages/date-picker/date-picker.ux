@@ -91,7 +91,7 @@ function parseDate(text) {
   if (!y || !m || !d) {
     return null
   }
-  return { y, m, d }
+  return {y, m, d}
 }
 
 function daysInMonth(y, m) {
@@ -198,7 +198,8 @@ export default {
   },
 
   applySavedOrToday() {
-    const savedDate = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate
+    const savedDate =
+      this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate
     const saved = parseDate(savedDate)
     if (saved) {
       this.applyDate(saved.y, saved.m, saved.d)
@@ -288,7 +289,7 @@ export default {
   loadData() {
     storage.get({
       key: STORAGE_KEY,
-      success: raw => {
+      success: (raw) => {
         try {
           this.scheduleData = normalizeScheduleData(JSON.parse(raw))
           this.applySavedOrToday()
@@ -400,7 +401,8 @@ export default {
   margin-right: 12px;
 }
 
-.title-back, .title-text {
+.title-back,
+.title-text {
   color: #ffffff;
   font-size: 30px;
   font-weight: 800;

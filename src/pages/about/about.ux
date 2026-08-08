@@ -17,26 +17,26 @@
 </template>
 
 <script>
-import app from '@system.app'
-import router from '@system.router'
+import app from "@system.app"
+import router from "@system.router"
 
 function formatTime(date) {
   const hour = date.getHours()
   const minute = date.getMinutes()
-  const hh = hour < 10 ? '0' + hour : hour + ''
-  const mm = minute < 10 ? '0' + minute : minute + ''
-  return hh + ':' + mm
+  const hh = hour < 10 ? "0" + hour : hour + ""
+  const mm = minute < 10 ? "0" + minute : minute + ""
+  return hh + ":" + mm
 }
 
 export default {
   private: {
     appInfo: {
-      icon: '',
-      name: '',
-      versionName: '',
-      versionCode: ''
+      icon: "",
+      name: "",
+      versionName: "",
+      versionCode: ""
     },
-    currentTime: '',
+    currentTime: "",
     timerId: 0
   },
 
@@ -46,10 +46,10 @@ export default {
     const info = app.getInfo()
     if (info) {
       this.appInfo = {
-        icon: info.icon || '',
-        name: info.name || '',
-        versionName: info.versionName || '',
-        versionCode: info.versionCode || ''
+        icon: info.icon || "",
+        name: info.name || "",
+        versionName: info.versionName || "",
+        versionCode: info.versionCode || ""
       }
     }
   },
@@ -120,7 +120,8 @@ export default {
   margin-right: 12px;
 }
 
-.title-back, .title-text {
+.title-back,
+.title-text {
   color: #ffffff;
   font-size: 30px;
   font-weight: 800;

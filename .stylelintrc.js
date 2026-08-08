@@ -4,7 +4,7 @@ module.exports = {
     "stylelint-config-recess-order"
     // "stylelint-selector-bem-pattern"
   ],
-  ignoreFiles: ["node_modules", "test", "dist", "**/*.js"],
+  ignoreFiles: ["node_modules", "test", "dist", "**/*.js", "**/*.ux"],
   rules: {
     "no-descending-specificity": null,
     "color-hex-case": "lower",

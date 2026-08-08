@@ -25,12 +25,20 @@
             <text class="section-title">{{ group.title }}</text>
             <block for="{{ course in group.courses }}">
               <div class="course-row">
-                <div class="{{ course.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}" onclick="openCourseDetail(course)">
+                <div
+                  class="{{ course.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}"
+                  onclick="openCourseDetail(course)"
+                >
                   <text class="course-name">{{ course.name }}</text>
                   <text class="course-meta">{{ course.timeText }}</text>
                   <text class="course-meta" if="{{ course.position }}">{{ course.position }}</text>
                   <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
-                  <progress class="course-progress" if="{{ course.isOngoing }}" percent="{{ course.progressPercent }}" type="horizontal"></progress>
+                  <progress
+                    class="course-progress"
+                    if="{{ course.isOngoing }}"
+                    percent="{{ course.progressPercent }}"
+                    type="horizontal"
+                  ></progress>
                 </div>
               </div>
             </block>
@@ -38,9 +46,22 @@
         </block>
       </scroll>
 
-      <div class="state-wrap" if="{{ semesterStartDateMissing || semesterTotalWeeksMissing || notStarted || !hasCourses }}">
+      <div
+        class="state-wrap"
+        if="{{ semesterStartDateMissing || semesterTotalWeeksMissing || notStarted || !hasCourses }}"
+      >
         <image class="empty-icon" src="/common/rest.png"></image>
-        <text class="empty-text">{{ semesterStartDateMissing ? '请先设置开学日期' : (semesterTotalWeeksMissing ? '请先设置学期周数' : (notStarted ? '暂未开学' : '今日无课程')) }}</text>
+        <text class="empty-text">
+          {{
+            semesterStartDateMissing
+              ? "请先设置开学日期"
+              : semesterTotalWeeksMissing
+                ? "请先设置学期周数"
+                : notStarted
+                  ? "暂未开学"
+                  : "今日无课程"
+          }}
+        </text>
       </div>
     </div>
 
@@ -55,9 +76,6 @@ import router from "@system.router"
 import storage from "@system.storage"
 import interconnect from "@system.interconnect"
 import prompt from "@system.prompt"
-
-// 示例课表数据（开发/调试用）
-// const exampleSchedule = require("../../common/example-schedule.js")
 
 const STORAGE_KEY = "schedule_data"
 const conn = interconnect.instance()
@@ -107,7 +125,7 @@ function maxWeekInCourses(courses, configTotalWeeks) {
     const item = courses[i]
     const limit = configTotalWeeks || 100
     const weeks = item.weeks
-    
+
     if (Array.isArray(weeks) && weeks.length > 0) {
       for (let j = 0; j < weeks.length; j += 1) {
         let w = weeks[j]
@@ -170,9 +188,7 @@ function normalizeScheduleData(data) {
   const normalized = {
     courses: Array.isArray(data.courses) ? data.courses : [],
     timeSlots: Array.isArray(data.timeSlots) ? data.timeSlots : [],
-    config: data.config && typeof data.config === "object"
-      ? data.config
-      : {}
+    config: data.config && typeof data.config === "object" ? data.config : {}
   }
   if (!normalized.config.semesterStartDate) {
     normalized.config.semesterStartDate = ""
@@ -218,7 +234,12 @@ function sectionSortValue(course) {
     return h * 60 + m
   }
   // 其次用标准课节时间
-  if (course.startSection && course.startSection > 0 && course.timeText && course.timeText.indexOf("-") > 0) {
+  if (
+    course.startSection &&
+    course.startSection > 0 &&
+    course.timeText &&
+    course.timeText.indexOf("-") > 0
+  ) {
     // 取 timeText 的开始时间
     const startTime = course.timeText.split("-")[0]
     if (/^\d{2}:\d{2}$/.test(startTime)) {
@@ -254,7 +275,7 @@ function resolveCourseRangeMinutes(item, startSlot, endSlot) {
     if (start === null || end === null) {
       return null
     }
-    return { start, end }
+    return {start, end}
   }
 
   if (startSlot && endSlot) {
@@ -263,7 +284,7 @@ function resolveCourseRangeMinutes(item, startSlot, endSlot) {
     if (start === null || end === null) {
       return null
     }
-    return { start, end }
+    return {start, end}
   }
 
   return null
@@ -382,7 +403,7 @@ export default {
   },
 
   bindInterconnect() {
-    conn.onmessage = event => {
+    conn.onmessage = (event) => {
       try {
         const imported = tryExtractSchedule(event && event.data)
         if (!imported) {
@@ -420,27 +441,26 @@ export default {
   },
 
   loadSchedule() {
-    // 优先直接使用 exampleSchedule，若报错则回退到正式存储
-    try {
-      this.scheduleData = normalizeScheduleData(exampleSchedule)
+    // 开发/调试时直接使用示例课表，生产版本走本地存储
+    if (process.env.NODE_ENV !== "production") {
+      this.scheduleData = normalizeScheduleData(require("../../common/example-schedule.json"))
       this.afterLoad()
-    } catch (e) {
-      storage.get({
-        key: STORAGE_KEY,
-        success: raw => {
-          try {
-            const parsed = JSON.parse(raw)
-            this.scheduleData = normalizeScheduleData(parsed)
-            this.afterLoad()
-          } catch (err) {
-            this.useDefaultData()
-          }
-        },
-        fail: () => {
+      return
+    }
+    storage.get({
+      key: STORAGE_KEY,
+      success: (raw) => {
+        try {
+          this.scheduleData = normalizeScheduleData(JSON.parse(raw))
+          this.afterLoad()
+        } catch (err) {
           this.useDefaultData()
         }
-      })
-    }
+      },
+      fail: () => {
+        this.useDefaultData()
+      }
+    })
   },
 
   useDefaultData() {
@@ -454,8 +474,10 @@ export default {
   },
 
   afterLoad() {
-    const semesterStartDate = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate
-    const rawSemesterTotalWeeks = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks
+    const semesterStartDate =
+      this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate
+    const rawSemesterTotalWeeks =
+      this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks
     const semesterTotalWeeks = Number(rawSemesterTotalWeeks)
     const hasSemesterStartDate = !!semesterStartDate
     const hasSemesterTotalWeeks = !isNaN(semesterTotalWeeks) && semesterTotalWeeks > 0
@@ -489,9 +511,7 @@ export default {
     this.semesterTotalWeeksMissing = false
 
     this.currentWeek = weekFromStart(
-      this.scheduleData &&
-      this.scheduleData.config &&
-      this.scheduleData.config.semesterStartDate,
+      this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate,
       selectedDate
     )
     const courses = (this.scheduleData && this.scheduleData.courses) || []
@@ -551,7 +571,8 @@ export default {
       }
       dayCourses.push(normalized)
 
-      const semesterTotalWeeks = (this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks) || 100
+      const semesterTotalWeeks =
+        (this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks) || 100
       let showInCurrentWeek = false
 
       if (item.weeks && item.weeks.length) {
@@ -577,9 +598,7 @@ export default {
       }
     }
 
-    const target = this.currentWeek > 0
-      ? currentWeekCourses
-      : dayCourses
+    const target = this.currentWeek > 0 ? currentWeekCourses : dayCourses
 
     target.sort((a, b) => sectionSortValue(a) - sectionSortValue(b))
     this.displayCourses = target
@@ -600,7 +619,7 @@ export default {
       }
       const [endHour, endMinute] = endTime ? endTime.split(":").map(Number) : [0, 0]
       const endMinutes = endHour * 60 + endMinute
-      
+
       if (endMinutes < 12 * 60) {
         morning.push(course)
       } else if (endMinutes <= 14 * 60) {
@@ -613,10 +632,10 @@ export default {
     }
 
     this.courseGroups = [
-      { title: "上午", courses: morning },
-      { title: "中午", courses: noon },
-      { title: "下午", courses: afternoon },
-      { title: "晚上", courses: evening }
+      {title: "上午", courses: morning},
+      {title: "中午", courses: noon},
+      {title: "下午", courses: afternoon},
+      {title: "晚上", courses: evening}
     ]
   },
 
@@ -688,7 +707,9 @@ export default {
   justify-content: center;
 }
 
-.date-arrow-text, .day-text, .date-text {
+.date-arrow-text,
+.day-text,
+.date-text {
   color: #ffffff;
   font-size: 22px;
   font-weight: 700;
@@ -815,7 +836,9 @@ export default {
     margin-left: 10px;
   }
 
-  .date-arrow-text, .day-text, .date-text {
+  .date-arrow-text,
+  .day-text,
+  .date-text {
     font-size: 26px;
   }
 

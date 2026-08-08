@@ -23,13 +23,17 @@
         <div class="item-main-row">
           <div class="item-left-col">
             <text class="item-text">学期周数</text>
-            <text class="item-subtext" if="{{ semesterTotalWeeks }}">{{ semesterTotalWeeks }} 周</text>
+            <text class="item-subtext" if="{{ semesterTotalWeeks }}">
+              {{ semesterTotalWeeks }} 周
+            </text>
           </div>
           <text class="item-arrow">&gt;</text>
         </div>
       </list-item>
       <list-item type="default" class="settings-item settings-item-warn" onclick="clearSchedule">
-        <text class="item-text item-text-warn">{{ clearConfirming ? '确认清除' : '清除配置' }}</text>
+        <text class="item-text item-text-warn">
+          {{ clearConfirming ? "确认清除" : "清除配置" }}
+        </text>
       </list-item>
       <list-item type="default" class="settings-item" onclick="openAbout">
         <text class="item-text">关于</text>
@@ -138,7 +142,7 @@ export default {
 
     storage.get({
       key: STORAGE_KEY,
-      success: raw => {
+      success: (raw) => {
         const data = parseStoragePayload(raw)
         if (validateSchedule(data)) {
           this.scheduleData = data
@@ -193,8 +197,10 @@ export default {
         this.clearConfirming = false
         // 清除成功后震动一次
         try {
-          vibrator.vibrate({ mode: "short" })
-        } catch (e) {}
+          vibrator.vibrate({mode: "short"})
+        } catch (e) {
+          // 震动失败可忽略
+        }
         prompt.showToast({
           message: "已清除配置",
           duration: 1200
@@ -249,7 +255,8 @@ export default {
   margin-right: 12px;
 }
 
-.title-back, .title-text {
+.title-back,
+.title-text {
   color: #ffffff;
   font-size: 30px;
   font-weight: 800;

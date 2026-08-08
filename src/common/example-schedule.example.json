@@ -1,0 +1,52 @@
+{
+  "courses": [
+    {
+      "name": "课程一",
+      "teacher": "",
+      "position": "",
+      "day": 1,
+      "startSection": 1,
+      "endSection": 1,
+      "weekType": "all"
+    },
+    {
+      "name": "课程二",
+      "teacher": "",
+      "position": "",
+      "day": 2,
+      "startSection": 2,
+      "endSection": 2,
+      "weekType": "all"
+    },
+    {
+      "name": "课程三",
+      "teacher": "",
+      "position": "",
+      "day": 3,
+      "startSection": 3,
+      "endSection": 3,
+      "weekType": "all"
+    }
+  ],
+  "timeSlots": [
+    {
+      "number": 1,
+      "startTime": "08:00",
+      "endTime": "08:40"
+    },
+    {
+      "number": 2,
+      "startTime": "08:50",
+      "endTime": "09:30"
+    },
+    {
+      "number": 3,
+      "startTime": "10:00",
+      "endTime": "10:40"
+    }
+  ],
+  "config": {
+    "semesterStartDate": "2026-03-02",
+    "semesterTotalWeeks": 18
+  }
+}

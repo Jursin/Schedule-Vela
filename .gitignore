@@ -1,9 +1,7 @@
-/.nyc_output
-/coverage
 /node_modules
 /sign
 /dist
 /build
-.husky/
 
 src/common/example-schedule*.json
+!src/common/example-schedule.example.json

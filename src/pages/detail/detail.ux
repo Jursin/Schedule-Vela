@@ -8,10 +8,24 @@
       <text class="course-meta">{{ course.timeText }}</text>
       <text class="course-meta">{{ course.position }}</text>
       <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
-      <text class="remaining-time" if="{{ showUpcomingReminder }}">还剩{{ upcomingMinutes }}分钟上课</text>
-      <progress class="course-progress" if="{{ showUpcomingReminder }}" percent="{{ upcomingProgressPercent }}" type="horizontal"></progress>
-      <text class="remaining-time" if="{{ course.isOngoing }}">还剩{{ remainingMinutes }}分钟下课</text>
-      <progress class="course-progress" if="{{ course.isOngoing }}" percent="{{ course.progressPercent }}" type="horizontal"></progress>
+      <text class="remaining-time" if="{{ showUpcomingReminder }}">
+        还剩{{ upcomingMinutes }}分钟上课
+      </text>
+      <progress
+        class="course-progress"
+        if="{{ showUpcomingReminder }}"
+        percent="{{ upcomingProgressPercent }}"
+        type="horizontal"
+      ></progress>
+      <text class="remaining-time" if="{{ course.isOngoing }}">
+        还剩{{ remainingMinutes }}分钟下课
+      </text>
+      <progress
+        class="course-progress"
+        if="{{ course.isOngoing }}"
+        percent="{{ course.progressPercent }}"
+        type="horizontal"
+      ></progress>
     </div>
   </div>
 </template>
@@ -43,13 +57,14 @@ export default {
   onInit() {
     // 解析参数
     try {
-      const courseData = typeof this.course === 'string' ? JSON.parse(this.course) : this.course
+      const courseData = typeof this.course === "string" ? JSON.parse(this.course) : this.course
       this.course = courseData
       if (this.todayCourses) {
-        this.todayCourses = typeof this.todayCourses === 'string' ? JSON.parse(this.todayCourses) : this.todayCourses
+        this.todayCourses =
+          typeof this.todayCourses === "string" ? JSON.parse(this.todayCourses) : this.todayCourses
       }
     } catch (e) {
-      console.error('Failed to parse params:', e)
+      console.error("Failed to parse params:", e)
     }
     this.calculateRemainingTime()
     this.calculateUpcomingReminder()
@@ -87,23 +102,23 @@ export default {
 
   calculateRemainingTime() {
     if (!this.course.isOngoing) return
-    
+
     const timeText = this.course.timeText
     if (!timeText) return
-    
+
     const timeParts = timeText.split("-")
     if (timeParts.length !== 2) return
-    
+
     const startTime = timeParts[0]
     const endTime = timeParts[1]
     const [startHour, startMinute] = startTime.split(":").map(Number)
     const [endHour, endMinute] = endTime.split(":").map(Number)
-    
+
     const now = new Date()
     const totalStartSeconds = (startHour * 60 + startMinute) * 60
     const totalEndSeconds = (endHour * 60 + endMinute) * 60
     const totalCurrentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()
-    
+
     const remainingSeconds = totalEndSeconds - totalCurrentSeconds
     if (remainingSeconds <= 0) {
       this.remainingMinutes = 0
@@ -181,7 +196,8 @@ export default {
       if (
         currentMinutes >= itv.from &&
         currentMinutes < itv.to &&
-        currentCourseKey && currentCourseKey === itv.courseKey
+        currentCourseKey &&
+        currentCourseKey === itv.courseKey
       ) {
         matched = itv
         break
@@ -191,7 +207,9 @@ export default {
       this.upcomingMinutes = matched.to - currentMinutes
       this.showUpcomingReminder = true
       // 进度条百分比 = (currentMinutes - from) / (to - from)
-      let percent = Math.floor(((currentMinutes - matched.from) * 100) / (matched.to - matched.from))
+      let percent = Math.floor(
+        ((currentMinutes - matched.from) * 100) / (matched.to - matched.from)
+      )
       if (percent < 0) percent = 0
       if (percent > 100) percent = 100
       this.upcomingProgressPercent = percent

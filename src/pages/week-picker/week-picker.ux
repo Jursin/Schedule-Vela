@@ -112,13 +112,14 @@ export default {
   },
 
   applySavedOrDefault() {
-    const savedWeek = this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks
+    const savedWeek =
+      this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks
     let targetWeek = parseInt(savedWeek, 10)
-    
+
     if (Number.isNaN(targetWeek) || targetWeek < WEEK_MIN || targetWeek > WEEK_MAX) {
       targetWeek = DEFAULT_WEEK
     }
-    
+
     this.weekIndex = targetWeek - WEEK_MIN
   },
 
@@ -139,7 +140,7 @@ export default {
   loadData() {
     storage.get({
       key: STORAGE_KEY,
-      success: raw => {
+      success: (raw) => {
         try {
           const parsed = JSON.parse(raw)
           if (parsed && typeof parsed === "object") {
@@ -178,10 +179,10 @@ export default {
     if (!this.scheduleData.config) {
       this.scheduleData.config = {}
     }
-    
+
     const selectedWeek = WEEK_MIN + this.weekIndex
     this.scheduleData.config.semesterTotalWeeks = selectedWeek
-    
+
     storage.set({
       key: STORAGE_KEY,
       value: JSON.stringify(this.scheduleData),
@@ -235,7 +236,8 @@ export default {
   margin-right: 12px;
 }
 
-.title-back, .title-text {
+.title-back,
+.title-text {
   color: #ffffff;
   font-size: 30px;
   font-weight: 800;
