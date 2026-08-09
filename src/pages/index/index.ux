@@ -123,32 +123,6 @@ function weekFromStart(startDate, targetDate) {
   return Math.floor(diffDays / 7) + 1
 }
 
-function maxWeekInCourses(courses, configTotalWeeks) {
-  if (!Array.isArray(courses) || courses.length === 0) {
-    return 0
-  }
-  let max = 0
-  for (let i = 0; i < courses.length; i += 1) {
-    const item = courses[i]
-    const limit = configTotalWeeks || 100
-    const weeks = item.weeks
-
-    if (Array.isArray(weeks) && weeks.length > 0) {
-      for (let j = 0; j < weeks.length; j += 1) {
-        let w = weeks[j]
-        if (w <= limit && w > max) {
-          max = w
-        }
-      }
-    } else if (item.weekType) {
-      if (limit < 100 && limit > max) {
-        max = limit
-      }
-    }
-  }
-  return max
-}
-
 function normalizeDay(day) {
   if (day < 1 || day > 7) {
     return 1
@@ -242,6 +216,15 @@ function sectionSortValue(course) {
   }
   // 兜底
   return 999
+}
+
+function timeEndToMinutes(timeText) {
+  let endTime = ""
+  if (timeText && timeText.indexOf("-") > 0) {
+    endTime = timeText.split("-")[1]
+  }
+  const [endHour, endMinute] = endTime ? endTime.split(":").map(Number) : [0, 0]
+  return endHour * 60 + endMinute
 }
 
 function resolveCourseRangeMinutes(item, startSlot, endSlot) {
@@ -392,7 +375,16 @@ export default {
           })
           return
         }
-        this.scheduleData = utils.normalizeScheduleData(imported)
+        const importedSchedule = utils.normalizeScheduleData(imported)
+        // 来源未携带 config 时保留旧配置
+        const prevConfig = (this.scheduleData && this.scheduleData.config) || {}
+        if (!importedSchedule.config.semesterStartDate && prevConfig.semesterStartDate) {
+          importedSchedule.config.semesterStartDate = prevConfig.semesterStartDate
+        }
+        if (!importedSchedule.config.semesterTotalWeeks && prevConfig.semesterTotalWeeks) {
+          importedSchedule.config.semesterTotalWeeks = prevConfig.semesterTotalWeeks
+        }
+        this.scheduleData = importedSchedule
         storage.set({
           key: STORAGE_KEY,
           value: JSON.stringify(this.scheduleData),
@@ -509,13 +501,11 @@ export default {
       this.scheduleData && this.scheduleData.config && this.scheduleData.config.semesterStartDate,
       selectedDate
     )
-    const courses = (this.scheduleData && this.scheduleData.courses) || []
-    const configTotalWeeks = semesterTotalWeeks
-    const maxWeek = maxWeekInCourses(courses, configTotalWeeks)
+    // 以配置的学期周数为学期结束依据
     if (this.currentWeek < 0) {
       this.notStarted = true
       this.currentWeekText = "-"
-    } else if (maxWeek > 0 && this.currentWeek > maxWeek) {
+    } else if (this.currentWeek > semesterTotalWeeks) {
       this.notStarted = true
       this.currentWeekText = String(this.currentWeek)
     } else {
@@ -525,29 +515,27 @@ export default {
     this.refreshCourses()
   },
 
-  findTime(number) {
-    const slots = (this.scheduleData && this.scheduleData.timeSlots) || []
-    for (let i = 0; i < slots.length; i += 1) {
-      if (slots[i].number === number) {
-        return slots[i]
-      }
-    }
-    return null
-  },
-
   refreshCourses() {
     const source = (this.scheduleData && this.scheduleData.courses) || []
+    const timeSlots = (this.scheduleData && this.scheduleData.timeSlots) || []
+    // 预建节次表，避免逐课程线性查找
+    const slotMap = {}
+    for (let i = 0; i < timeSlots.length; i += 1) {
+      slotMap[timeSlots[i].number] = timeSlots[i]
+    }
+    const semesterTotalWeeks =
+      (this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks) || 100
+    const isToday = (this.selectedOffsetDays || 0) === 0
     const dayCourses = []
     const currentWeekCourses = []
-    const isToday = (this.selectedOffsetDays || 0) === 0
     for (let i = 0; i < source.length; i += 1) {
       const item = source[i]
       if (item.day !== this.selectedDay) {
         continue
       }
       const hasCustomTime = item.isCustomTime === true
-      const startSlot = this.findTime(item.startSection)
-      const endSlot = this.findTime(item.endSection)
+      const startSlot = slotMap[item.startSection]
+      const endSlot = slotMap[item.endSection]
       let timeText = ""
       if (hasCustomTime && item.customStartTime && item.customEndTime) {
         timeText = item.customStartTime + "-" + item.customEndTime
@@ -564,10 +552,11 @@ export default {
         isOngoing: isCourseOngoing(item, startSlot, endSlot, isToday),
         progressPercent: courseProgressPercent(item, startSlot, endSlot, isToday)
       }
+      // 预计算排序与分组值，避免排序/分组时重复解析
+      normalized.sortValue = sectionSortValue(normalized)
+      normalized.endMinutes = timeEndToMinutes(timeText)
       dayCourses.push(normalized)
 
-      const semesterTotalWeeks =
-        (this.scheduleData.config && this.scheduleData.config.semesterTotalWeeks) || 100
       let showInCurrentWeek = false
 
       if (item.weeks && item.weeks.length) {
@@ -595,7 +584,7 @@ export default {
 
     const target = this.currentWeek > 0 ? currentWeekCourses : dayCourses
 
-    target.sort((a, b) => sectionSortValue(a) - sectionSortValue(b))
+    target.sort((a, b) => a.sortValue - b.sortValue)
     this.displayCourses = target
     this.hasCourses = target.length > 0
 
@@ -607,19 +596,11 @@ export default {
 
     for (let i = 0; i < target.length; i++) {
       const course = target[i]
-      // 解析结束时间
-      let endTime = ""
-      if (course.timeText && course.timeText.indexOf("-") > 0) {
-        endTime = course.timeText.split("-")[1]
-      }
-      const [endHour, endMinute] = endTime ? endTime.split(":").map(Number) : [0, 0]
-      const endMinutes = endHour * 60 + endMinute
-
-      if (endMinutes < 12 * 60) {
+      if (course.endMinutes < 12 * 60) {
         morning.push(course)
-      } else if (endMinutes <= 14 * 60) {
+      } else if (course.endMinutes <= 14 * 60) {
         noon.push(course)
-      } else if (endMinutes <= 19 * 60) {
+      } else if (course.endMinutes <= 19 * 60) {
         afternoon.push(course)
       } else {
         evening.push(course)

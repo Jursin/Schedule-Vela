@@ -52,9 +52,7 @@ const preferences = require("../../common/preferences.js")
 const utils = require("../../common/utils.js")
 
 export default {
-  private: {
-    currentTime: "",
-    themeColor: preferences.DEFAULT_COLOR,
+  protected: {
     course: {
       name: "",
       timeText: "",
@@ -63,7 +61,12 @@ export default {
       isOngoing: false,
       progressPercent: 0
     },
-    todayCourses: [],
+    todayCourses: []
+  },
+
+  private: {
+    currentTime: "",
+    themeColor: preferences.DEFAULT_COLOR,
     remainingMinutes: 0,
     upcomingMinutes: 0,
     showUpcomingReminder: false,
@@ -72,11 +75,9 @@ export default {
       name: "",
       position: ""
     },
+    sortedTodayCourses: [],
+    reminderWindow: null,
     timer: null
-  },
-
-  protected: {
-    course: null
   },
 
   onInit() {
@@ -91,6 +92,7 @@ export default {
     } catch (e) {
       console.error("Failed to parse params:", e)
     }
+    this.initTodayCourseIndex()
     this.calculateRemainingTime()
     this.calculateUpcomingReminder()
     this.calculateNextCourse()
@@ -100,10 +102,50 @@ export default {
       this.updateCurrentTime()
       if (this.course.isOngoing) {
         this.calculateRemainingTime()
+        this.calculateNextCourse()
       }
-      this.calculateUpcomingReminder()
-      this.calculateNextCourse()
+      if (this.inReminderWindow() || this.showUpcomingReminder) {
+        this.calculateUpcomingReminder()
+      }
     }, 1000)
+  },
+
+  // 预处理当天课程排序与提醒生效区间
+  initTodayCourseIndex() {
+    const courses = Array.isArray(this.todayCourses) ? this.todayCourses : []
+    this.sortedTodayCourses = courses.slice().sort((a, b) => {
+      const t1 = a.timeText && a.timeText.split("-")[0]
+      const t2 = b.timeText && b.timeText.split("-")[0]
+      if (!t1 || !t2) {
+        return 0
+      }
+      const start1 = utils.timeToMinutes(t1)
+      const start2 = utils.timeToMinutes(t2)
+      return (start1 === null ? 0 : start1) - (start2 === null ? 0 : start2)
+    })
+    let lastEnd = 0
+    for (let i = 0; i < this.sortedTodayCourses.length; i += 1) {
+      const timeText = this.sortedTodayCourses[i].timeText
+      if (timeText && timeText.indexOf("-") > 0) {
+        const end = utils.timeToMinutes(timeText.split("-")[1])
+        if (end !== null && end > lastEnd) {
+          lastEnd = end
+        }
+      }
+    }
+    this.reminderWindow =
+      this.sortedTodayCourses.length > 0 ? {from: 7 * 60, to: lastEnd} : null
+  },
+
+  inReminderWindow() {
+    if (!this.reminderWindow) {
+      return false
+    }
+    const now = new Date()
+    const currentMinutes = now.getHours() * 60 + now.getMinutes()
+    return (
+      currentMinutes >= this.reminderWindow.from && currentMinutes <= this.reminderWindow.to
+    )
   },
 
   loadPreference() {
@@ -213,19 +255,12 @@ export default {
   // 上课提醒和进度条
   calculateUpcomingReminder() {
     // 只针对当天课程
-    if (!this.todayCourses || !Array.isArray(this.todayCourses) || this.todayCourses.length === 0) {
+    if (!this.sortedTodayCourses || this.sortedTodayCourses.length === 0) {
       this.showUpcomingReminder = false
       return
     }
-    // 取当天课程按开始时间排序
-    const sorted = this.todayCourses.slice().sort((a, b) => {
-      const t1 = a.timeText && a.timeText.split("-")[0]
-      const t2 = b.timeText && b.timeText.split("-")[0]
-      if (!t1 || !t2) return 0
-      const [h1, m1] = t1.split(":").map(Number)
-      const [h2, m2] = t2.split(":").map(Number)
-      return h1 * 60 + m1 - (h2 * 60 + m2)
-    })
+    // 使用预排序课程
+    const sorted = this.sortedTodayCourses
     const now = new Date()
     const currentMinutes = now.getHours() * 60 + now.getMinutes()
     // 构造所有区间

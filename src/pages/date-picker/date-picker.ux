@@ -48,7 +48,6 @@
 <script>
 import router from "@system.router"
 import storage from "@system.storage"
-import prompt from "@system.prompt"
 
 const preferences = require("../../common/preferences.js")
 const utils = require("../../common/utils.js")
