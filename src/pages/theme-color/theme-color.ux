@@ -1,0 +1,180 @@
+<template>
+  <div class="page">
+    <text class="title title-round">主题色</text>
+    <div class="title-row title-rect">
+      <div class="title-left">
+        <text class="title-back" onclick="goBack">&lt;</text>
+        <text class="title-text">主题色</text>
+      </div>
+      <text class="title-text">{{ currentTime }}</text>
+    </div>
+
+    <list class="color-list">
+      <list-item
+        type="default"
+        class="color-item"
+        for="{{ color in colorOptions }}"
+        style="background-color: {{ color.value }}"
+        onclick="selectColor(color.value)"
+      >
+        <text class="color-name">{{ color.name }}</text>
+        <image
+          class="color-tick"
+          if="{{ selectedColor === color.value }}"
+          src="/common/tick.png"
+        ></image>
+      </list-item>
+    </list>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+
+const preferences = require("../../common/preferences.js")
+const utils = require("../../common/utils.js")
+
+const COLOR_OPTIONS = [
+  {name: "深空蓝", value: "#237bff"},
+  {name: "冰川青", value: "#06b6d4"},
+  {name: "极光紫", value: "#8b5cf6"},
+  {name: "樱花粉", value: "#ec4899"},
+  {name: "森林绿", value: "#15803d"},
+  {name: "琥珀黄", value: "#e0a422"}
+]
+
+export default {
+  private: {
+    colorOptions: COLOR_OPTIONS,
+    selectedColor: preferences.DEFAULT_COLOR,
+    currentTime: "",
+    timerId: 0
+  },
+
+  onInit() {
+    utils.startClock(this)
+    this.loadPreference()
+  },
+
+  onDestroy() {
+    utils.stopClock(this)
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  loadPreference() {
+    preferences.getPreferences((pref) => {
+      this.selectedColor = pref.themeColor
+    })
+  },
+
+  selectColor(value) {
+    if (!value || value === this.selectedColor) {
+      router.back()
+      return
+    }
+    this.selectedColor = value
+    preferences.setPreferences({themeColor: value}, (ok) => {
+      if (ok) {
+        router.back()
+      } else {
+        prompt.showToast({
+          message: "保存失败",
+          duration: 2000
+        })
+      }
+    })
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 18px 0 6px;
+  background-color: #000000;
+  align-items: center;
+}
+
+.title {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.title-rect {
+  display: none;
+}
+
+.title-row {
+  width: 100%;
+  padding: 0 18px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title-left {
+  flex-direction: row;
+  align-items: center;
+}
+
+.title-back {
+  margin-right: 12px;
+}
+
+.title-back,
+.title-text {
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.color-list {
+  flex: 1;
+  width: 90%;
+  flex-direction: column;
+}
+
+.color-item {
+  width: 100%;
+  height: 64px;
+  margin-top: 8px;
+  border-radius: 20px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.color-name {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.color-tick {
+  width: 24px;
+  height: 24px;
+}
+
+@media (shape: rect) {
+  .title-round {
+    display: none;
+  }
+
+  .title-rect {
+    display: flex;
+    margin-bottom: 8px;
+  }
+
+  .color-name {
+    font-size: 26px;
+  }
+}
+</style>

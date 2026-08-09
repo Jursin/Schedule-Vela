@@ -20,13 +20,7 @@
 import app from "@system.app"
 import router from "@system.router"
 
-function formatTime(date) {
-  const hour = date.getHours()
-  const minute = date.getMinutes()
-  const hh = hour < 10 ? "0" + hour : hour + ""
-  const mm = minute < 10 ? "0" + minute : minute + ""
-  return hh + ":" + mm
-}
+const utils = require("../../common/utils.js")
 
 export default {
   private: {
@@ -41,8 +35,7 @@ export default {
   },
 
   onInit() {
-    this.refreshTime()
-    this.startClock()
+    utils.startClock(this)
     const info = app.getInfo()
     if (info) {
       this.appInfo = {
@@ -55,29 +48,11 @@ export default {
   },
 
   onDestroy() {
-    this.stopClock()
+    utils.stopClock(this)
   },
 
   goBack() {
     router.back()
-  },
-
-  refreshTime() {
-    this.currentTime = formatTime(new Date())
-  },
-
-  startClock() {
-    this.stopClock()
-    this.timerId = setInterval(() => {
-      this.refreshTime()
-    }, 30000)
-  },
-
-  stopClock() {
-    if (this.timerId) {
-      clearInterval(this.timerId)
-      this.timerId = 0
-    }
   }
 }
 </script>

@@ -26,13 +26,28 @@
             <block for="{{ course in group.courses }}">
               <div class="course-row">
                 <div
-                  class="{{ course.isOngoing ? 'course-card course-card-ongoing' : 'course-card' }}"
+                  class="course-card {{ centerHomeText ? 'course-card-centered' : '' }}"
+                  style="{{ course.isOngoing ? 'background-color:' + themeColor : '' }}"
                   onclick="openCourseDetail(course)"
                 >
-                  <text class="course-name">{{ course.name }}</text>
-                  <text class="course-meta">{{ course.timeText }}</text>
-                  <text class="course-meta" if="{{ course.position }}">{{ course.position }}</text>
-                  <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
+                  <text class="course-name {{ centerHomeText ? 'text-centered' : '' }}">
+                    {{ course.name }}
+                  </text>
+                  <text class="course-meta {{ centerHomeText ? 'text-centered' : '' }}">
+                    {{ course.timeText }}
+                  </text>
+                  <text
+                    class="course-meta {{ centerHomeText ? 'text-centered' : '' }}"
+                    if="{{ course.position }}"
+                  >
+                    {{ course.position }}
+                  </text>
+                  <text
+                    class="course-meta {{ centerHomeText ? 'text-centered' : '' }}"
+                    if="{{ course.teacher }}"
+                  >
+                    {{ course.teacher }}
+                  </text>
                   <progress
                     class="course-progress"
                     if="{{ course.isOngoing }}"
@@ -77,20 +92,12 @@ import storage from "@system.storage"
 import interconnect from "@system.interconnect"
 import prompt from "@system.prompt"
 
+const preferences = require("../../common/preferences.js")
+const utils = require("../../common/utils.js")
 const STORAGE_KEY = "schedule_data"
 const conn = interconnect.instance()
 const DAY_SLIDE_TOTAL = 361
 const DAY_SLIDE_CENTER = Math.floor(DAY_SLIDE_TOTAL / 2)
-
-function createEmptySchedule() {
-  return {
-    courses: [],
-    timeSlots: [],
-    config: {
-      semesterStartDate: ""
-    }
-  }
-}
 
 function formatDate(date) {
   const y = date.getFullYear()
@@ -181,21 +188,6 @@ function formatMonthDay(date) {
   return m + "-" + d
 }
 
-function normalizeScheduleData(data) {
-  if (!data || typeof data !== "object") {
-    return createEmptySchedule()
-  }
-  const normalized = {
-    courses: Array.isArray(data.courses) ? data.courses : [],
-    timeSlots: Array.isArray(data.timeSlots) ? data.timeSlots : [],
-    config: data.config && typeof data.config === "object" ? data.config : {}
-  }
-  if (!normalized.config.semesterStartDate) {
-    normalized.config.semesterStartDate = ""
-  }
-  return normalized
-}
-
 function parseJsonIfNeeded(raw) {
   if (typeof raw !== "string") {
     return raw
@@ -252,26 +244,10 @@ function sectionSortValue(course) {
   return 999
 }
 
-function parseTimeToMinutes(text) {
-  if (!text || typeof text !== "string") {
-    return null
-  }
-  const match = text.match(/^(\d{1,2}):(\d{2})$/)
-  if (!match) {
-    return null
-  }
-  const hour = parseInt(match[1], 10)
-  const minute = parseInt(match[2], 10)
-  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-    return null
-  }
-  return hour * 60 + minute
-}
-
 function resolveCourseRangeMinutes(item, startSlot, endSlot) {
   if (item.isCustomTime === true && item.customStartTime && item.customEndTime) {
-    const start = parseTimeToMinutes(item.customStartTime)
-    const end = parseTimeToMinutes(item.customEndTime)
+    const start = utils.timeToMinutes(item.customStartTime)
+    const end = utils.timeToMinutes(item.customEndTime)
     if (start === null || end === null) {
       return null
     }
@@ -279,8 +255,8 @@ function resolveCourseRangeMinutes(item, startSlot, endSlot) {
   }
 
   if (startSlot && endSlot) {
-    const start = parseTimeToMinutes(startSlot.startTime)
-    const end = parseTimeToMinutes(endSlot.endTime)
+    const start = utils.timeToMinutes(startSlot.startTime)
+    const end = utils.timeToMinutes(endSlot.endTime)
     if (start === null || end === null) {
       return null
     }
@@ -334,7 +310,7 @@ function courseProgressPercent(item, startSlot, endSlot, isToday) {
 
 export default {
   private: {
-    scheduleData: createEmptySchedule(),
+    scheduleData: utils.createEmptySchedule(),
     selectedDay: dayOfWeekFromToday(),
     selectedDayText: dayText(dayOfWeekFromToday()),
     selectedDateText: formatMonthDay(new Date()),
@@ -347,6 +323,9 @@ export default {
     semesterTotalWeeksMissing: false,
     currentWeek: 0,
     currentWeekText: "-",
+    hideTeacher: false,
+    centerHomeText: false,
+    themeColor: preferences.DEFAULT_COLOR,
     courseGroups: []
   },
 
@@ -413,7 +392,7 @@ export default {
           })
           return
         }
-        this.scheduleData = normalizeScheduleData(imported)
+        this.scheduleData = utils.normalizeScheduleData(imported)
         storage.set({
           key: STORAGE_KEY,
           value: JSON.stringify(this.scheduleData),
@@ -441,30 +420,46 @@ export default {
   },
 
   loadSchedule() {
-    // 开发/调试时直接使用示例课表，生产版本走本地存储
-    if (process.env.NODE_ENV !== "production") {
-      this.scheduleData = normalizeScheduleData(require("../../common/example-schedule.json"))
-      this.afterLoad()
-      return
-    }
-    storage.get({
-      key: STORAGE_KEY,
-      success: (raw) => {
-        try {
-          this.scheduleData = normalizeScheduleData(JSON.parse(raw))
-          this.afterLoad()
-        } catch (err) {
+    // 先加载偏好设置，再加载课表，避免首屏闪现老师名
+    this.loadPreferences(() => {
+      // 开发/调试时直接使用示例课表，生产版本走本地存储
+      if (process.env.NODE_ENV !== "production") {
+        this.scheduleData = utils.normalizeScheduleData(
+          require("../../common/example-schedule.json")
+        )
+        this.afterLoad()
+        return
+      }
+      storage.get({
+        key: STORAGE_KEY,
+        success: (raw) => {
+          try {
+            this.scheduleData = utils.normalizeScheduleData(JSON.parse(raw))
+            this.afterLoad()
+          } catch (err) {
+            this.useDefaultData()
+          }
+        },
+        fail: () => {
           this.useDefaultData()
         }
-      },
-      fail: () => {
-        this.useDefaultData()
+      })
+    })
+  },
+
+  loadPreferences(callback) {
+    preferences.getPreferences((pref) => {
+      this.hideTeacher = !!pref.hideTeacher
+      this.centerHomeText = !!pref.centerHomeText
+      this.themeColor = pref.themeColor
+      if (callback) {
+        callback()
       }
     })
   },
 
   useDefaultData() {
-    const data = createEmptySchedule()
+    const data = utils.createEmptySchedule()
     this.scheduleData = data
     storage.set({
       key: STORAGE_KEY,
@@ -562,7 +557,7 @@ export default {
       const normalized = {
         name: item.name,
         position: item.position || "",
-        teacher: item.teacher || "",
+        teacher: this.hideTeacher ? "" : item.teacher || "",
         startSection: item.startSection,
         customStartTime: item.customStartTime || "",
         timeText: timeText,
@@ -751,8 +746,8 @@ export default {
   background-color: #090909;
 }
 
-.course-card-ongoing {
-  background-color: #237bff;
+.course-card-centered {
+  align-items: center;
 }
 
 .course-progress {
@@ -771,9 +766,13 @@ export default {
 
 .course-meta {
   margin-top: 4px;
-  color: #cccccc;
+  color: #dedddd;
   font-size: 22px;
   font-weight: 700;
+}
+
+.text-centered {
+  text-align: center;
 }
 
 .state-wrap {

@@ -38,7 +38,7 @@
     </div>
 
     <div class="action-wrap">
-      <div class="confirm-button" onclick="saveAndBack">
+      <div class="confirm-button" style="background-color: {{ themeColor }}" onclick="saveAndBack">
         <image class="confirm-icon" src="/common/tick.png"></image>
       </div>
     </div>
@@ -50,6 +50,8 @@ import router from "@system.router"
 import storage from "@system.storage"
 import prompt from "@system.prompt"
 
+const preferences = require("../../common/preferences.js")
+const utils = require("../../common/utils.js")
 const STORAGE_KEY = "schedule_data"
 const TODAY = new Date()
 const YEAR_MIN = 2000
@@ -59,26 +61,8 @@ function pad(value) {
   return (value + "").padStart(2, "0")
 }
 
-function createEmptySchedule() {
-  return {
-    courses: [],
-    timeSlots: [],
-    config: {
-      semesterStartDate: ""
-    }
-  }
-}
-
 function formatDate(y, m, d) {
   return y + "-" + pad(m) + "-" + pad(d)
-}
-
-function formatTime(date) {
-  const hour = date.getHours()
-  const minute = date.getMinutes()
-  const hh = hour < 10 ? "0" + hour : hour + ""
-  const mm = minute < 10 ? "0" + minute : minute + ""
-  return hh + ":" + mm
 }
 
 function parseDate(text) {
@@ -106,28 +90,6 @@ function getTodayDate() {
   }
 }
 
-function normalizeScheduleData(data) {
-  if (!data || typeof data !== "object") {
-    return createEmptySchedule()
-  }
-  const normalized = {
-    courses: Array.isArray(data.courses) ? data.courses : [],
-    timeSlots: Array.isArray(data.timeSlots) ? data.timeSlots : [],
-    config: data.config && typeof data.config === "object" ? data.config : {}
-  }
-  if (!normalized.config.semesterStartDate) {
-    normalized.config.semesterStartDate = ""
-  }
-  return normalized
-}
-
-function showToast(message) {
-  prompt.showToast({
-    message,
-    duration: 2000
-  })
-}
-
 export default {
   private: {
     year: TODAY.getFullYear(),
@@ -140,43 +102,32 @@ export default {
     yearIndex: 0,
     monthIndex: 0,
     dayIndex: 0,
-    scheduleData: createEmptySchedule(),
+    scheduleData: utils.createEmptySchedule(),
+    themeColor: preferences.DEFAULT_COLOR,
     currentTime: "",
     timerId: 0
   },
 
   onInit() {
-    this.refreshTime()
-    this.startClock()
+    utils.startClock(this)
     this.initPickerOptions()
     this.applyTodayDate()
+    this.loadPreference()
     this.loadData()
   },
 
   onDestroy() {
-    this.stopClock()
+    utils.stopClock(this)
   },
 
   goBack() {
     router.back()
   },
 
-  refreshTime() {
-    this.currentTime = formatTime(new Date())
-  },
-
-  startClock() {
-    this.stopClock()
-    this.timerId = setInterval(() => {
-      this.refreshTime()
-    }, 30000)
-  },
-
-  stopClock() {
-    if (this.timerId) {
-      clearInterval(this.timerId)
-      this.timerId = 0
-    }
+  loadPreference() {
+    preferences.getPreferences((pref) => {
+      this.themeColor = pref.themeColor
+    })
   },
 
   initPickerOptions() {
@@ -291,15 +242,15 @@ export default {
       key: STORAGE_KEY,
       success: (raw) => {
         try {
-          this.scheduleData = normalizeScheduleData(JSON.parse(raw))
+          this.scheduleData = utils.normalizeScheduleData(JSON.parse(raw))
           this.applySavedOrToday()
         } catch (e) {
-          this.scheduleData = createEmptySchedule()
+          this.scheduleData = utils.createEmptySchedule()
           this.applyTodayDate()
         }
       },
       fail: () => {
-        this.scheduleData = createEmptySchedule()
+        this.scheduleData = utils.createEmptySchedule()
         this.applyTodayDate()
       }
     })
@@ -352,11 +303,11 @@ export default {
       key: STORAGE_KEY,
       value: JSON.stringify(this.scheduleData),
       success: () => {
-        showToast("已保存")
+        utils.showToast("已保存")
         router.back()
       },
       fail: () => {
-        showToast("保存失败")
+        utils.showToast("保存失败")
       }
     })
   }
@@ -444,7 +395,6 @@ export default {
   height: 62px;
   margin-bottom: 20px;
   border-radius: 30px;
-  background-color: #287eff;
   align-items: center;
   justify-content: center;
 }

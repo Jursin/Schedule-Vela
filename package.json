@@ -12,8 +12,7 @@
     "release": "aiot release",
     "lint": "eslint --format codeframe --fix --ext .ux,.js src/",
     "format": "prettier --write \"src/**/*.ux\" \"src/**/*.json\"",
-    "check": "prettier --check \"src/**/*.ux\" \"src/**/*.json\"",
-    "postinstall": "node scripts/patch-style-config.js"
+    "check": "prettier --check \"src/**/*.ux\" \"src/**/*.json\""
   },
   "devDependencies": {
     "@aiot-toolkit/jsc": "^1.0.8",

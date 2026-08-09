@@ -30,6 +30,14 @@
           <text class="item-arrow">&gt;</text>
         </div>
       </list-item>
+      <list-item type="default" class="settings-item settings-item-nav" onclick="openPersonalize">
+        <div class="item-main-row">
+          <div class="item-left-col">
+            <text class="item-text">个性化</text>
+          </div>
+          <text class="item-arrow">&gt;</text>
+        </div>
+      </list-item>
       <list-item type="default" class="settings-item settings-item-warn" onclick="clearSchedule">
         <text class="item-text item-text-warn">
           {{ clearConfirming ? "确认清除" : "清除配置" }}
@@ -49,16 +57,7 @@ import prompt from "@system.prompt"
 import vibrator from "@system.vibrator"
 
 const STORAGE_KEY = "schedule_data"
-
-function createEmptySchedule() {
-  return {
-    courses: [],
-    timeSlots: [],
-    config: {
-      semesterStartDate: ""
-    }
-  }
-}
+const utils = require("../../common/utils.js")
 
 function parseStoragePayload(raw) {
   try {
@@ -78,17 +77,9 @@ function validateSchedule(data) {
   return true
 }
 
-function formatTime(date) {
-  const hour = date.getHours()
-  const minute = date.getMinutes()
-  const hh = hour < 10 ? "0" + hour : hour + ""
-  const mm = minute < 10 ? "0" + minute : minute + ""
-  return hh + ":" + mm
-}
-
 export default {
   private: {
-    scheduleData: createEmptySchedule(),
+    scheduleData: utils.createEmptySchedule(),
     semesterStartDate: "",
     semesterTotalWeeks: "",
     clearConfirming: false,
@@ -97,35 +88,16 @@ export default {
   },
 
   onInit() {
-    this.refreshTime()
-    this.startClock()
+    utils.startClock(this)
     this.loadData()
   },
 
   onDestroy() {
-    this.stopClock()
+    utils.stopClock(this)
   },
 
   goBack() {
     router.back()
-  },
-
-  refreshTime() {
-    this.currentTime = formatTime(new Date())
-  },
-
-  startClock() {
-    this.stopClock()
-    this.timerId = setInterval(() => {
-      this.refreshTime()
-    }, 30000)
-  },
-
-  stopClock() {
-    if (this.timerId) {
-      clearInterval(this.timerId)
-      this.timerId = 0
-    }
   },
 
   onShow() {
@@ -134,7 +106,7 @@ export default {
 
   loadData() {
     const resetState = () => {
-      this.scheduleData = createEmptySchedule()
+      this.scheduleData = utils.createEmptySchedule()
       this.semesterStartDate = ""
       this.semesterTotalWeeks = ""
       this.clearConfirming = false
@@ -156,6 +128,12 @@ export default {
       fail: () => {
         resetState()
       }
+    })
+  },
+
+  openPersonalize() {
+    router.push({
+      uri: "/pages/personalize"
     })
   },
 
@@ -190,7 +168,7 @@ export default {
     }
     storage.set({
       key: STORAGE_KEY,
-      value: JSON.stringify(createEmptySchedule()),
+      value: JSON.stringify(utils.createEmptySchedule()),
       success: () => {
         this.semesterStartDate = ""
         this.semesterTotalWeeks = ""
@@ -282,6 +260,11 @@ export default {
 
 .settings-item-date {
   height: 95px;
+  padding: 0 16px;
+}
+
+.settings-item-nav {
+  height: 64px;
   padding: 0 16px;
 }
 

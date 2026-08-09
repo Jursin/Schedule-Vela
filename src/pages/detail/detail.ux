@@ -1,39 +1,60 @@
 <template>
   <div class="page">
-    <div class="time-section">
-      <text class="current-time">{{ currentTime }}</text>
-    </div>
-    <div class="course-section">
-      <text class="course-name">{{ course.name }}</text>
-      <text class="course-meta">{{ course.timeText }}</text>
-      <text class="course-meta">{{ course.position }}</text>
-      <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
-      <text class="remaining-time" if="{{ showUpcomingReminder }}">
-        还剩{{ upcomingMinutes }}分钟上课
-      </text>
-      <progress
-        class="course-progress"
-        if="{{ showUpcomingReminder }}"
-        percent="{{ upcomingProgressPercent }}"
-        type="horizontal"
-      ></progress>
-      <text class="remaining-time" if="{{ course.isOngoing }}">
-        还剩{{ remainingMinutes }}分钟下课
-      </text>
-      <progress
-        class="course-progress"
-        if="{{ course.isOngoing }}"
-        percent="{{ course.progressPercent }}"
-        type="horizontal"
-      ></progress>
-    </div>
+    <scroll scroll-y="true" class="page-scroll">
+      <div class="page-content">
+        <div class="time-section">
+          <text class="current-time">{{ currentTime }}</text>
+        </div>
+        <div class="course-section">
+          <text class="course-name">{{ course.name }}</text>
+          <text class="course-meta">{{ course.timeText }}</text>
+          <text class="course-meta">{{ course.position }}</text>
+          <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
+          <text
+            class="remaining-time"
+            style="color: {{ themeColor }}"
+            if="{{ showUpcomingReminder }}"
+          >
+            还剩{{ upcomingMinutes }}分钟上课
+          </text>
+          <progress
+            class="course-progress"
+            style="color: {{ themeColor }}"
+            if="{{ showUpcomingReminder }}"
+            percent="{{ upcomingProgressPercent }}"
+            type="horizontal"
+          ></progress>
+          <text class="remaining-time" style="color: {{ themeColor }}" if="{{ course.isOngoing }}">
+            还剩{{ remainingMinutes }}分钟下课
+          </text>
+          <progress
+            class="course-progress"
+            style="color: {{ themeColor }}"
+            if="{{ course.isOngoing }}"
+            percent="{{ course.progressPercent }}"
+            type="horizontal"
+          ></progress>
+        </div>
+        <div class="next-course-section" if="{{ nextCourse.name }}">
+          <text class="next-course-label">下一节</text>
+          <text class="next-course-name">{{ nextCourse.name }}</text>
+          <text class="next-course-meta" if="{{ nextCourse.position }}">
+            {{ nextCourse.position }}
+          </text>
+        </div>
+      </div>
+    </scroll>
   </div>
 </template>
 
 <script>
+const preferences = require("../../common/preferences.js")
+const utils = require("../../common/utils.js")
+
 export default {
   private: {
     currentTime: "",
+    themeColor: preferences.DEFAULT_COLOR,
     course: {
       name: "",
       timeText: "",
@@ -47,6 +68,10 @@ export default {
     upcomingMinutes: 0,
     showUpcomingReminder: false,
     upcomingProgressPercent: 0,
+    nextCourse: {
+      name: "",
+      position: ""
+    },
     timer: null
   },
 
@@ -68,14 +93,23 @@ export default {
     }
     this.calculateRemainingTime()
     this.calculateUpcomingReminder()
+    this.calculateNextCourse()
     this.updateCurrentTime()
+    this.loadPreference()
     this.timer = setInterval(() => {
       this.updateCurrentTime()
       if (this.course.isOngoing) {
         this.calculateRemainingTime()
       }
       this.calculateUpcomingReminder()
+      this.calculateNextCourse()
     }, 1000)
+  },
+
+  loadPreference() {
+    preferences.getPreferences((pref) => {
+      this.themeColor = pref.themeColor
+    })
   },
 
   courseMatchKey(course) {
@@ -84,6 +118,45 @@ export default {
     }
     // 使用名称+时间作为匹配键
     return (course.name || "") + "|" + (course.timeText || "")
+  },
+
+  // 上课时底部显示下一节课课程名和教室
+  calculateNextCourse() {
+    let nextName = ""
+    let nextPosition = ""
+    // 仅在当前课程进行中时显示
+    if (
+      this.course &&
+      this.course.isOngoing &&
+      Array.isArray(this.todayCourses) &&
+      this.todayCourses.length > 0
+    ) {
+      const timeText = this.course.timeText
+      if (timeText && timeText.indexOf("-") >= 0) {
+        const currentEndMinutes = utils.timeToMinutes(timeText.split("-")[1])
+        if (currentEndMinutes !== null) {
+          // todayCourses 已按开始时间排序，取首个晚于当前课结束的课程
+          const currentKey = this.courseMatchKey(this.course)
+          for (let i = 0; i < this.todayCourses.length; i++) {
+            const item = this.todayCourses[i]
+            if (this.courseMatchKey(item) === currentKey) {
+              continue
+            }
+            const startMinutes = utils.timeToMinutes(item.timeText && item.timeText.split("-")[0])
+            if (startMinutes !== null && startMinutes > currentEndMinutes) {
+              nextName = item.name || ""
+              nextPosition = item.position || ""
+              break
+            }
+          }
+        }
+      }
+    }
+    // 仅在值变化时更新，避免每秒触发渲染
+    if (this.nextCourse.name !== nextName || this.nextCourse.position !== nextPosition) {
+      this.nextCourse.name = nextName
+      this.nextCourse.position = nextPosition
+    }
   },
 
   onDestroy() {
@@ -227,6 +300,20 @@ export default {
   height: 100%;
   background-color: #000000;
   align-items: center;
+}
+
+.page-scroll {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
+}
+
+.page-content {
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+  align-items: center;
+  justify-content: center;
   padding: 60px 10px;
 }
 
@@ -244,6 +331,36 @@ export default {
   flex-direction: column;
   width: 100%;
   align-items: center;
+}
+
+.next-course-section {
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  padding-top: 24px;
+}
+
+.next-course-label {
+  color: #999999;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.next-course-name {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.next-course-meta {
+  color: #cccccc;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .course-name {
@@ -279,7 +396,7 @@ export default {
 }
 
 @media (shape: rect) {
-  .page {
+  .page-content {
     padding: 45px 10px;
   }
 
@@ -293,6 +410,18 @@ export default {
 
   .course-meta {
     font-size: 32px;
+  }
+
+  .next-course-label {
+    font-size: 22px;
+  }
+
+  .next-course-name {
+    font-size: 28px;
+  }
+
+  .next-course-meta {
+    font-size: 24px;
   }
 }
 </style>

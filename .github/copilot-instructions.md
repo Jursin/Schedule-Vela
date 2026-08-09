@@ -51,6 +51,12 @@
 - 📌 Flexbox 布局 + 圆屏安全区域 → `rules/vela-layout.md`
 - 📌 命名规范 + 错误处理 + 资源清理 → `rules/vela-quality.md`
 
+
+### 强制约束（必须遵守）
+- 当已有模拟器正在运行时不要运行 npm run build 测试构建
+- 必须要测试构建时先申请停止已有模拟器
+- 日常开发时直接读取 AIoT Core 输出即可
+
 ---
 
 ## 自定义 Agent

@@ -48,6 +48,12 @@
       "pages/week-picker": {
         "component": "week-picker"
       },
+      "pages/personalize": {
+        "component": "personalize"
+      },
+      "pages/theme-color": {
+        "component": "theme-color"
+      },
       "pages/about": {
         "component": "about"
       }

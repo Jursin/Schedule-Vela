@@ -1,0 +1,242 @@
+<template>
+  <div class="page">
+    <text class="title title-round">个性化</text>
+    <div class="title-row title-rect">
+      <div class="title-left">
+        <text class="title-back" onclick="goBack">&lt;</text>
+        <text class="title-text">个性化</text>
+      </div>
+      <text class="title-text">{{ currentTime }}</text>
+    </div>
+
+    <list class="settings-list">
+      <list-item type="default" class="settings-item settings-item-nav" onclick="openThemeColor">
+        <div class="item-main-row">
+          <div class="item-left-col">
+            <text class="item-text">主题色</text>
+          </div>
+          <text class="item-arrow">&gt;</text>
+        </div>
+      </list-item>
+      <list-item type="default" class="settings-item settings-item-switch">
+        <div class="item-main-row">
+          <div class="item-left-col item-switch-label">
+            <text class="item-text">隐藏授课老师</text>
+          </div>
+          <switch
+            class="item-switch"
+            checked="{{ hideTeacher }}"
+            style="track-color: {{ themeColor }}"
+            onchange="toggleHideTeacher"
+          ></switch>
+        </div>
+      </list-item>
+      <list-item type="default" class="settings-item settings-item-switch">
+        <div class="item-main-row">
+          <div class="item-left-col item-switch-label">
+            <text class="item-text">首页文本居中</text>
+          </div>
+          <switch
+            class="item-switch"
+            checked="{{ centerHomeText }}"
+            style="track-color: {{ themeColor }}"
+            onchange="toggleCenterHomeText"
+          ></switch>
+        </div>
+      </list-item>
+    </list>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import prompt from "@system.prompt"
+
+const preferences = require("../../common/preferences.js")
+const utils = require("../../common/utils.js")
+
+export default {
+  private: {
+    hideTeacher: false,
+    themeColor: preferences.DEFAULT_COLOR,
+    centerHomeText: false,
+    currentTime: "",
+    timerId: 0
+  },
+
+  onInit() {
+    utils.startClock(this)
+    this.loadPreferences()
+  },
+
+  onDestroy() {
+    utils.stopClock(this)
+  },
+
+  onShow() {
+    this.loadPreferences()
+  },
+
+  goBack() {
+    router.back()
+  },
+
+  loadPreferences() {
+    preferences.getPreferences((pref) => {
+      this.hideTeacher = !!pref.hideTeacher
+      this.centerHomeText = !!pref.centerHomeText
+      this.themeColor = pref.themeColor
+    })
+  },
+
+  savePreferences(patch) {
+    preferences.setPreferences(patch, (ok) => {
+      if (!ok) {
+        prompt.showToast({
+          message: "保存失败",
+          duration: 2000
+        })
+      }
+    })
+  },
+
+  toggleHideTeacher(event) {
+    this.hideTeacher = !!event.checked
+    this.savePreferences({hideTeacher: this.hideTeacher})
+  },
+
+  toggleCenterHomeText(event) {
+    this.centerHomeText = !!event.checked
+    this.savePreferences({centerHomeText: this.centerHomeText})
+  },
+
+  openThemeColor() {
+    router.push({
+      uri: "/pages/theme-color"
+    })
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 18px 0 6px;
+  background-color: #000000;
+  align-items: center;
+}
+
+.title {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.title-rect {
+  display: none;
+}
+
+.title-row {
+  width: 100%;
+  padding: 0 18px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title-left {
+  flex-direction: row;
+  align-items: center;
+}
+
+.title-back {
+  margin-right: 12px;
+}
+
+.title-back,
+.title-text {
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.settings-list {
+  flex: 1;
+  width: 90%;
+  flex-direction: column;
+}
+
+.settings-item {
+  width: 100%;
+  height: 64px;
+  margin-top: 8px;
+  border-radius: 20px;
+  border-width: 2px;
+  border-color: #3b3b3b;
+  background-color: #111111;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-item-switch {
+  height: 95px;
+  padding: 0 16px;
+}
+
+.settings-item-nav {
+  height: 64px;
+  padding: 0 16px;
+}
+
+.item-arrow {
+  color: #666666;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.item-switch-label {
+  flex: 1;
+}
+
+.item-switch {
+  width: 40px;
+  height: 20px;
+  thumb-color: #ffffff;
+}
+
+.item-main-row {
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.item-left-col {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.item-text {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+@media (shape: rect) {
+  .title-round {
+    display: none;
+  }
+
+  .title-rect {
+    display: flex;
+    margin-bottom: 8px;
+  }
+
+  .item-text {
+    font-size: 26px;
+  }
+}
+</style>

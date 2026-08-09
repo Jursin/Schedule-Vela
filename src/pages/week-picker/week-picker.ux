@@ -19,7 +19,7 @@
     ></picker>
 
     <div class="action-wrap">
-      <div class="confirm-button" onclick="saveAndBack">
+      <div class="confirm-button" style="background-color: {{ themeColor }}" onclick="saveAndBack">
         <image class="confirm-icon" src="/common/tick.png"></image>
       </div>
     </div>
@@ -31,76 +31,42 @@ import router from "@system.router"
 import storage from "@system.storage"
 import prompt from "@system.prompt"
 
+const preferences = require("../../common/preferences.js")
+const utils = require("../../common/utils.js")
 const STORAGE_KEY = "schedule_data"
 const WEEK_MIN = 10
 const WEEK_MAX = 30
 const DEFAULT_WEEK = 20
 
-function createEmptySchedule() {
-  return {
-    courses: [],
-    timeSlots: [],
-    config: {
-      semesterTotalWeeks: ""
-    }
-  }
-}
-
-function showToast(message) {
-  prompt.showToast({
-    message,
-    duration: 2000
-  })
-}
-
-function formatTime(date) {
-  const hour = date.getHours()
-  const minute = date.getMinutes()
-  const hh = hour < 10 ? "0" + hour : hour + ""
-  const mm = minute < 10 ? "0" + minute : minute + ""
-  return hh + ":" + mm
-}
-
 export default {
   private: {
     weekOptions: [],
     weekIndex: 0,
-    scheduleData: createEmptySchedule(),
+    scheduleData: utils.createEmptySchedule(),
+    themeColor: preferences.DEFAULT_COLOR,
     currentTime: "",
     timerId: 0
   },
 
   onInit() {
-    this.refreshTime()
-    this.startClock()
+    utils.startClock(this)
     this.initPickerOptions()
+    this.loadPreference()
     this.loadData()
   },
 
   onDestroy() {
-    this.stopClock()
+    utils.stopClock(this)
   },
 
   goBack() {
     router.back()
   },
 
-  refreshTime() {
-    this.currentTime = formatTime(new Date())
-  },
-
-  startClock() {
-    this.stopClock()
-    this.timerId = setInterval(() => {
-      this.refreshTime()
-    }, 30000)
-  },
-
-  stopClock() {
-    if (this.timerId) {
-      clearInterval(this.timerId)
-      this.timerId = 0
-    }
+  loadPreference() {
+    preferences.getPreferences((pref) => {
+      this.themeColor = pref.themeColor
+    })
   },
 
   initPickerOptions() {
@@ -146,16 +112,16 @@ export default {
           if (parsed && typeof parsed === "object") {
             this.scheduleData = parsed
           } else {
-            this.scheduleData = createEmptySchedule()
+            this.scheduleData = utils.createEmptySchedule()
           }
           this.applySavedOrDefault()
         } catch (e) {
-          this.scheduleData = createEmptySchedule()
+          this.scheduleData = utils.createEmptySchedule()
           this.applySavedOrDefault()
         }
       },
       fail: () => {
-        this.scheduleData = createEmptySchedule()
+        this.scheduleData = utils.createEmptySchedule()
         this.applySavedOrDefault()
       }
     })
@@ -187,11 +153,11 @@ export default {
       key: STORAGE_KEY,
       value: JSON.stringify(this.scheduleData),
       success: () => {
-        showToast("已保存")
+        utils.showToast("已保存")
         router.back()
       },
       fail: () => {
-        showToast("保存失败")
+        utils.showToast("保存失败")
       }
     })
   }
@@ -269,7 +235,6 @@ export default {
   height: 62px;
   margin-bottom: 20px;
   border-radius: 30px;
-  background-color: #287eff;
   align-items: center;
   justify-content: center;
 }

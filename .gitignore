@@ -2,6 +2,9 @@
 /sign
 /dist
 /build
+/docs
 
 src/common/example-schedule*.json
 !src/common/example-schedule.example.json
+
+.github/skills/AstroBoxSkills
