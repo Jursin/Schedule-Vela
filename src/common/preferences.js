@@ -9,6 +9,9 @@ const DEFAULT_PREFERENCES = {
   centerHomeText: false
 }
 
+// 内存缓存：应用启动时预载，页面同步读取首帧主题色
+let cachedPrefs = null
+
 function parsePreferences(raw) {
   let pref = {}
   if (typeof raw === "string") {
@@ -21,15 +24,41 @@ function parsePreferences(raw) {
   return Object.assign({}, DEFAULT_PREFERENCES, pref)
 }
 
+// 应用启动时调用，预载偏好到内存缓存
+function init(callback) {
+  storage.get({
+    key: PREFERENCE_KEY,
+    success: (raw) => {
+      cachedPrefs = parsePreferences(raw)
+      if (callback) {
+        callback(cachedPrefs)
+      }
+    },
+    fail: () => {
+      cachedPrefs = Object.assign({}, DEFAULT_PREFERENCES)
+      if (callback) {
+        callback(cachedPrefs)
+      }
+    }
+  })
+}
+
+// 同步返回缓存的主题色，缓存未就绪时回退默认色
+function getCachedThemeColor() {
+  return cachedPrefs ? cachedPrefs.themeColor : DEFAULT_COLOR
+}
+
 // 读取偏好，回调返回 { themeColor, hideTeacher, centerHomeText }
 function getPreferences(callback) {
   storage.get({
     key: PREFERENCE_KEY,
     success: (raw) => {
-      callback(parsePreferences(raw))
+      cachedPrefs = parsePreferences(raw)
+      callback(cachedPrefs)
     },
     fail: () => {
-      callback(Object.assign({}, DEFAULT_PREFERENCES))
+      cachedPrefs = Object.assign({}, DEFAULT_PREFERENCES)
+      callback(cachedPrefs)
     }
   })
 }
@@ -41,6 +70,7 @@ function setPreferences(patch, callback) {
       key: PREFERENCE_KEY,
       value: JSON.stringify(pref),
       success: () => {
+        cachedPrefs = pref
         if (callback) {
           callback(true)
         }
@@ -66,5 +96,7 @@ function setPreferences(patch, callback) {
 module.exports = {
   getPreferences,
   setPreferences,
+  init,
+  getCachedThemeColor,
   DEFAULT_COLOR
 }

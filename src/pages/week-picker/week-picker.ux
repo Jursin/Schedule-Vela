@@ -42,7 +42,7 @@ export default {
     weekOptions: [],
     weekIndex: 0,
     scheduleData: utils.createEmptySchedule(),
-    themeColor: preferences.DEFAULT_COLOR,
+    themeColor: preferences.getCachedThemeColor(),
     currentTime: "",
     timerId: 0
   },

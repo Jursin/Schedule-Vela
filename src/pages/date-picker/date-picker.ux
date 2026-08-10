@@ -102,7 +102,7 @@ export default {
     monthIndex: 0,
     dayIndex: 0,
     scheduleData: utils.createEmptySchedule(),
-    themeColor: preferences.DEFAULT_COLOR,
+    themeColor: preferences.getCachedThemeColor(),
     currentTime: "",
     timerId: 0
   },

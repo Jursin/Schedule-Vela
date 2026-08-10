@@ -47,7 +47,7 @@ const COLOR_OPTIONS = [
 export default {
   private: {
     colorOptions: COLOR_OPTIONS,
-    selectedColor: preferences.DEFAULT_COLOR,
+    selectedColor: preferences.getCachedThemeColor(),
     currentTime: "",
     timerId: 0
   },

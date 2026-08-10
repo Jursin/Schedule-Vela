@@ -62,7 +62,7 @@ export default {
 
   private: {
     currentTime: "",
-    themeColor: preferences.DEFAULT_COLOR,
+    themeColor: preferences.getCachedThemeColor(),
     remainingMinutes: 0,
     upcomingMinutes: 0,
     showUpcomingReminder: false,

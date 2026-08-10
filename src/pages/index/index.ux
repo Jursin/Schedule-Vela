@@ -308,7 +308,7 @@ export default {
     currentWeekText: "-",
     hideTeacher: false,
     centerHomeText: false,
-    themeColor: preferences.DEFAULT_COLOR,
+    themeColor: preferences.getCachedThemeColor(),
     courseGroups: []
   },
 

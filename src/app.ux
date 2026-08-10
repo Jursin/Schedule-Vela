@@ -1,3 +1,10 @@
 <script>
-export default {}
+const preferences = require("./common/preferences.js")
+
+export default {
+  onCreate() {
+    // 启动时预载偏好，避免页面首帧显示默认主题色
+    preferences.init()
+  }
+}
 </script>
