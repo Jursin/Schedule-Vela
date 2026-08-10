@@ -52,7 +52,7 @@
   ```
 - 首次开发：初始化示例课表
   ```
-  cp src/common/example-schedule.example.json src/common/example-schedule.json
+  cp examples/example-schedule.example.json examples/example-schedule.json
   ```
 - 代码检查与格式化
   ```

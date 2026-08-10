@@ -177,4 +177,10 @@ export default {
     font-size: 26px;
   }
 }
+
+@media (shape: pill-shaped) {
+  .color-list {
+    padding-bottom: 60px;
+  }
+}
 </style>

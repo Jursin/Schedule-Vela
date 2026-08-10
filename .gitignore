@@ -4,7 +4,7 @@
 /build
 /docs
 
-src/common/example-schedule*.json
-!src/common/example-schedule.example.json
+examples/example-schedule*.json
+!examples/example-schedule.example.json
 
 .github/skills/AstroBoxSkills

@@ -330,4 +330,10 @@ export default {
     font-size: 32px;
   }
 }
+
+@media (shape: pill-shaped) {
+  .settings-list {
+    padding-bottom: 60px;
+  }
+}
 </style>

@@ -417,7 +417,7 @@ export default {
       // 开发/调试时直接使用示例课表，生产版本走本地存储
       if (process.env.NODE_ENV !== "production") {
         this.scheduleData = utils.normalizeScheduleData(
-          require("../../common/example-schedule.json")
+          require("../../../examples/example-schedule.json")
         )
         this.afterLoad()
         return

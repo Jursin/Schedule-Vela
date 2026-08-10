@@ -201,8 +201,8 @@ export default {
 }
 
 .item-switch {
-  width: 40px;
-  height: 20px;
+  width: 42.5px;
+  height: 22.5px;
   thumb-color: #ffffff;
 }
 
@@ -237,6 +237,11 @@ export default {
 
   .item-text {
     font-size: 26px;
+  }
+  
+  .item-switch {
+    width: 55px;
+    height: 28.5px;
   }
 }
 </style>

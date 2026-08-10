@@ -1,49 +1,45 @@
 <template>
   <div class="page">
-    <scroll scroll-y="true" class="page-scroll">
-      <div class="page-content">
-        <div class="time-section">
-          <text class="current-time">{{ currentTime }}</text>
-        </div>
-        <div class="course-section">
-          <text class="course-name">{{ course.name }}</text>
-          <text class="course-meta">{{ course.timeText }}</text>
-          <text class="course-meta">{{ course.position }}</text>
-          <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
-          <text
-            class="remaining-time"
-            style="color: {{ themeColor }}"
-            if="{{ showUpcomingReminder }}"
-          >
-            还剩{{ upcomingMinutes }}分钟上课
-          </text>
-          <progress
-            class="course-progress"
-            style="color: {{ themeColor }}"
-            if="{{ showUpcomingReminder }}"
-            percent="{{ upcomingProgressPercent }}"
-            type="horizontal"
-          ></progress>
-          <text class="remaining-time" style="color: {{ themeColor }}" if="{{ course.isOngoing }}">
-            还剩{{ remainingMinutes }}分钟下课
-          </text>
-          <progress
-            class="course-progress"
-            style="color: {{ themeColor }}"
-            if="{{ course.isOngoing }}"
-            percent="{{ course.progressPercent }}"
-            type="horizontal"
-          ></progress>
-        </div>
-        <div class="next-course-section" if="{{ nextCourse.name }}">
-          <text class="next-course-label">下一节</text>
-          <text class="next-course-name">{{ nextCourse.name }}</text>
-          <text class="next-course-meta" if="{{ nextCourse.position }}">
-            {{ nextCourse.position }}
-          </text>
-        </div>
-      </div>
-    </scroll>
+    <div class="time-section">
+      <text class="current-time">{{ currentTime }}</text>
+    </div>
+    <div class="course-section">
+      <text class="course-name">{{ course.name }}</text>
+      <text class="course-meta">{{ course.timeText }}</text>
+      <text class="course-meta">{{ course.position }}</text>
+      <text class="course-meta" if="{{ course.teacher }}">{{ course.teacher }}</text>
+      <text
+        class="remaining-time"
+        style="color: {{ themeColor }}"
+        if="{{ showUpcomingReminder }}"
+      >
+        还剩{{ upcomingMinutes }}分钟上课
+      </text>
+      <progress
+        class="course-progress"
+        style="color: {{ themeColor }}"
+        if="{{ showUpcomingReminder }}"
+        percent="{{ upcomingProgressPercent }}"
+        type="horizontal"
+      ></progress>
+      <text class="remaining-time" style="color: {{ themeColor }}" if="{{ course.isOngoing }}">
+        还剩{{ remainingMinutes }}分钟下课
+      </text>
+      <progress
+        class="course-progress"
+        style="color: {{ themeColor }}"
+        if="{{ course.isOngoing }}"
+        percent="{{ course.progressPercent }}"
+        type="horizontal"
+      ></progress>
+    </div>
+    <div class="next-course-section" if="{{ nextCourse.name }}">
+      <text class="next-course-label">下一节</text>
+      <text class="next-course-name">{{ nextCourse.name }}</text>
+      <text class="next-course-meta" if="{{ nextCourse.position }}">
+        {{ nextCourse.position }}
+      </text>
+    </div>
   </div>
 </template>
 
@@ -335,20 +331,6 @@ export default {
   height: 100%;
   background-color: #000000;
   align-items: center;
-}
-
-.page-scroll {
-  flex: 1;
-  width: 100%;
-  flex-direction: column;
-}
-
-.page-content {
-  flex-direction: column;
-  width: 100%;
-  min-height: 100%;
-  align-items: center;
-  justify-content: center;
   padding: 60px 10px;
 }
 
@@ -431,7 +413,7 @@ export default {
 }
 
 @media (shape: rect) {
-  .page-content {
+  .page {
     padding: 45px 10px;
   }
 
