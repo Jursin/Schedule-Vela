@@ -6,5 +6,3 @@
 
 examples/example-schedule*.json
 !examples/example-schedule.example.json
-
-.github/skills/AstroBoxSkills
