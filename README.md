@@ -37,12 +37,12 @@
 
 ## 📥 安装方式
 
-[![astrobox](https://astrobox.online/goab/zhcn/black.svg)](https://astrobox.online/open?source=resv2&id=5772&provider=BandBBS)
+[![astrobox](https://astrobox.online/goab/zhcn/black.svg)](https://astrobox.online/open?source=resv2&id=com.schedule.vela&provider=OfficialV2)
 
 [![自定义表盘工具](https://img.shields.io/badge/%E9%80%9A%E8%BF%87%E8%87%AA%E5%AE%9A%E4%B9%89%E8%A1%A8%E7%9B%98%E5%B7%A5%E5%85%B7%E8%8E%B7%E5%8F%96-black?style=for-the-badge)](https://api.bandbbs.cn/wftools/bandbbs.html?code=A&state=1855993)
 
 > [!note]
-> 导入课表需要在手机端安装[同步器应用](https://github.com/Jursin/Schedule-Sync/releases/latest)，详情请阅读[文档](https://blog.jursin.top/blog/tutorials/schedule-vela.html)
+> 导入课表需通过[同步器 APP](https://github.com/Jursin/Schedule-Sync/releases/latest)或 AstroBox 插件，详情请阅读[文档](https://blog.jursin.top/blog/tutorials/schedule-vela.html)
 
 ## 💻 开发
 - 环境：Node.js
@@ -86,11 +86,14 @@
 ### 可以适配小爱课程表导入吗？
 暂不考虑。现在小爱课程表难以打开，且没有导出配置文件的功能。手动适配难度大、收益低，如果一定要使用建议直接使用相关衍生项目。
 
-## 📦 相关仓库
-- 腕上课程表同步器：[Jursin/Schedule-Sync](https://github.com/Jursin/Schedule-Sync)
+### 可不可以适配其它设备？
+本快应用根据Xiaomi Vela JS 应用开发文档开发，理论上支持文档提到的[小米 Vela 穿戴设备](https://iot.mi.com/vela/quickapp/zh/guide/multi-screens/)。但因为我只有小米手环 9，所以除了这个设备屏幕适配较好外，其它设备屏幕适配可能不太好，但仍可以尝试安装。
 
-## 📖 文档
-- [详细使用文档](https://blog.jursin.top/blog/tutorials/schedule-vela.html)
+## 📦 相关仓库
+- 同步器 APP：[Jursin/Schedule-Sync](https://github.com/Jursin/Schedule-Sync)
+- 同步器 AstroBox v2 插件：[Jursin/Schedule-AstroBox-Plugin](https://github.com/Jursin/Schedule-AstroBox-Plugin)
+
+## 📖 参考
 - [Xiaomi Vela JS 应用开发文档](https://iot.mi.com/vela/quickapp)
 
 ## 📄 许可证
