@@ -2,8 +2,8 @@
   <div class="page">
     <text class="title title-round">关于</text>
     <div class="title-row title-rect">
-      <div class="title-left">
-        <text class="title-back" onclick="goBack">&lt;</text>
+      <div class="title-left" onclick="goBack">
+        <text class="title-back">&lt;</text>
         <text class="title-text">关于</text>
       </div>
       <text class="title-text">{{ currentTime }}</text>
