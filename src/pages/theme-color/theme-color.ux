@@ -63,8 +63,12 @@ export default {
     utils.stopClock(this)
   },
 
+  onHide() {
+    utils.stopClock(this)
+  },
+
   onShow() {
-    this.currentTime = utils.formatTime(new Date())
+    utils.startClock(this)
   },
 
   goBack() {

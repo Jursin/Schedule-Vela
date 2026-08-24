@@ -72,6 +72,52 @@ function stopClock(vm) {
   }
 }
 
+function pad2(value) {
+  return (value + "").padStart(2, "0")
+}
+
+function getPickerIndex(event, options, fallbackIndex) {
+  var raw = event && (event.newValue !== undefined ? event.newValue : event.value)
+  if (raw === undefined || raw === null || raw === "") {
+    return fallbackIndex >= 0 ? fallbackIndex : 0
+  }
+  var text = raw + ""
+  var directIndex = Array.isArray(options) ? options.indexOf(text) : -1
+  if (directIndex >= 0) {
+    return directIndex
+  }
+  var numeric = parseInt(text, 10)
+  if (!Number.isNaN(numeric)) {
+    if (numeric >= 0 && Array.isArray(options) && numeric < options.length) {
+      return numeric
+    }
+    if (Array.isArray(options)) {
+      var plainValueIndex = options.indexOf(numeric + "")
+      if (plainValueIndex >= 0) {
+        return plainValueIndex
+      }
+      var paddedValueIndex = options.indexOf(pad2(numeric))
+      if (paddedValueIndex >= 0) {
+        return paddedValueIndex
+      }
+    }
+  }
+  return fallbackIndex >= 0 ? fallbackIndex : 0
+}
+
+function parseTimeRange(timeText) {
+  if (!timeText || timeText.indexOf("-") < 0) {
+    return null
+  }
+  var parts = timeText.split("-")
+  var start = timeToMinutes(parts[0])
+  var end = timeToMinutes(parts[1])
+  if (start === null || end === null) {
+    return null
+  }
+  return { start: start, end: end }
+}
+
 module.exports = {
   formatTime,
   createEmptySchedule,
@@ -79,5 +125,8 @@ module.exports = {
   showToast,
   timeToMinutes,
   startClock,
-  stopClock
+  stopClock,
+  pad2,
+  getPickerIndex,
+  parseTimeRange
 }

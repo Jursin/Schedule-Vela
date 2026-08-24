@@ -84,12 +84,16 @@ export default {
     utils.stopClock(this)
   },
 
+  onHide() {
+    utils.stopClock(this)
+  },
+
   goBack() {
     router.back()
   },
 
   onShow() {
-    this.currentTime = utils.formatTime(new Date())
+    utils.startClock(this)
     this.loadData()
   },
 

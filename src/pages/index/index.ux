@@ -328,8 +328,12 @@ export default {
     conn.onmessage = null
   },
 
+  onHide() {
+    utils.stopClock(this)
+  },
+
   onShow() {
-    this.currentTime = utils.formatTime(new Date())
+    utils.startClock(this)
     this.loadSchedule()
   },
 

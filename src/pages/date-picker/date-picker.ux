@@ -59,12 +59,8 @@ const TODAY = new Date()
 const YEAR_MIN = 2000
 const YEAR_MAX = 2100
 
-function pad(value) {
-  return (value + "").padStart(2, "0")
-}
-
 function formatDate(y, m, d) {
-  return y + "-" + pad(m) + "-" + pad(d)
+  return y + "-" + utils.pad2(m) + "-" + utils.pad2(d)
 }
 
 function parseDate(text) {
@@ -122,8 +118,12 @@ export default {
     utils.stopClock(this)
   },
 
+  onHide() {
+    utils.stopClock(this)
+  },
+
   onShow() {
-    this.currentTime = utils.formatTime(new Date())
+    utils.startClock(this)
   },
 
   goBack() {
@@ -143,7 +143,7 @@ export default {
     }
     const months = []
     for (let m = 1; m <= 12; m += 1) {
-      months.push(pad(m))
+      months.push(utils.pad2(m))
     }
     this.yearOptions = years
     this.monthOptions = months
@@ -198,44 +198,13 @@ export default {
     this.syncDateText()
   },
 
-  getPickerIndex(event, options, fallbackIndex) {
-    const raw = event && (event.newValue !== undefined ? event.newValue : event.value)
-    if (raw === undefined || raw === null || raw === "") {
-      return fallbackIndex >= 0 ? fallbackIndex : 0
-    }
-    const text = raw + ""
-    const directIndex = Array.isArray(options) ? options.indexOf(text) : -1
-    if (directIndex >= 0) {
-      return directIndex
-    }
-
-    const numeric = parseInt(text, 10)
-    if (!Number.isNaN(numeric)) {
-      if (numeric >= 0 && Array.isArray(options) && numeric < options.length) {
-        return numeric
-      }
-      if (Array.isArray(options)) {
-        const plainValueIndex = options.indexOf(numeric + "")
-        if (plainValueIndex >= 0) {
-          return plainValueIndex
-        }
-        const paddedValueIndex = options.indexOf(pad(numeric))
-        if (paddedValueIndex >= 0) {
-          return paddedValueIndex
-        }
-      }
-    }
-
-    return fallbackIndex >= 0 ? fallbackIndex : 0
-  },
-
   refreshDayOptions() {
     const selectedYear = YEAR_MIN + this.yearIndex
     const selectedMonth = this.monthIndex + 1
     const maxDay = daysInMonth(selectedYear, selectedMonth)
     const days = []
     for (let d = 1; d <= maxDay; d += 1) {
-      days.push(pad(d))
+      days.push(utils.pad2(d))
     }
     this.dayOptions = days
     if (this.dayIndex > maxDay - 1) {
@@ -263,7 +232,7 @@ export default {
   },
 
   applyPickerChange(event, options, currentIndex) {
-    const nextIndex = this.getPickerIndex(event, options, currentIndex)
+    const nextIndex = utils.getPickerIndex(event, options, currentIndex)
     if (nextIndex >= options.length) {
       return options.length - 1
     }
