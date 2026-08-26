@@ -4,7 +4,7 @@
       <text class="week-text">第{{ currentWeekText }}周</text>
       <div class="date-switch-row">
         <div class="date-arrow-button" onclick="goPrevDay">
-          <text class="date-arrow-text">&lt;</text>
+          <image class="date-arrow-icon" src="/common/left.png"></image>
         </div>
         <div class="date-center-wrap">
           <div class="date-row">
@@ -13,7 +13,7 @@
           </div>
         </div>
         <div class="date-arrow-button" onclick="goNextDay">
-          <text class="date-arrow-text">&gt;</text>
+          <image class="date-arrow-icon" src="/common/right.png"></image>
         </div>
       </div>
     </div>
@@ -651,18 +651,25 @@ export default {
   font-weight: 800;
 }
 
-.date-row {
-  flex-direction: column;
-  margin-top: 2px;
-  align-items: center;
-  justify-content: center;
-}
-
 .date-switch-row {
   flex-direction: row;
   width: 100%;
   align-items: center;
   justify-content: center;
+}
+
+.date-arrow-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: transparent;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-arrow-icon {
+  width: 22px;
+  height: 22px;
 }
 
 .date-center-wrap {
@@ -671,24 +678,24 @@ export default {
   justify-content: center;
 }
 
-.date-arrow-button {
-  width: 42px;
-  height: 42px;
-  margin: 0 10px;
-  border-radius: 50%;
-  border-width: 2px;
-  border-color: #3b3b3b;
-  background-color: #111111;
+.date-row {
+  flex-direction: column;
+  margin-top: 2px;
   align-items: center;
   justify-content: center;
 }
 
-.date-arrow-text,
 .day-text,
 .date-text {
   color: #ffffff;
   font-size: 22px;
   font-weight: 700;
+}
+
+.course-content {
+  flex: 1;
+  width: 100%;
+  flex-direction: column;
 }
 
 .course-list-scroll {
@@ -703,12 +710,6 @@ export default {
   font-size: 28px;
   font-weight: 700;
   padding-bottom: 8px;
-}
-
-.course-content {
-  flex: 1;
-  width: 100%;
-  flex-direction: column;
 }
 
 .course-row {
@@ -731,14 +732,6 @@ export default {
   align-items: center;
 }
 
-.course-progress {
-  width: 100%;
-  margin-top: 10px;
-  stroke-width: 8px;
-  color: #ffffff;
-  layer-color: rgba(255, 255, 255, 0.3);
-}
-
 .course-name {
   color: #ffffff;
   font-size: 26px;
@@ -754,6 +747,14 @@ export default {
 
 .text-centered {
   text-align: center;
+}
+
+.course-progress {
+  width: 100%;
+  margin-top: 10px;
+  stroke-width: 8px;
+  color: #ffffff;
+  layer-color: rgba(255, 255, 255, 0.3);
 }
 
 .state-wrap {
@@ -816,15 +817,19 @@ export default {
     margin-left: 10px;
   }
 
-  .date-arrow-text,
+  .date-arrow-icon {
+    width: 26px;
+    height: 26px;
+  }
+
   .day-text,
   .date-text {
     font-size: 26px;
   }
 
   .date-arrow-button {
-    width: 46px;
-    height: 46px;
+    width: 54px;
+    height: 54px;
   }
 
   .empty-icon {

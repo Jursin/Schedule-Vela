@@ -3,46 +3,36 @@
     <text class="title title-round">个性化</text>
     <div class="title-row title-rect">
       <div class="title-left" onclick="goBack">
-        <text class="title-back">&lt;</text>
+        <div class="title-back-btn">
+          <image class="title-back-icon" src="/common/left.png"></image>
+        </div>
         <text class="title-text">个性化</text>
       </div>
       <text class="title-text">{{ currentTime }}</text>
     </div>
 
     <list class="settings-list">
-      <list-item type="default" class="settings-item settings-item-nav" onclick="openThemeColor">
-        <div class="item-main-row">
-          <div class="item-left-col">
-            <text class="item-text">主题色</text>
-          </div>
-          <text class="item-arrow">&gt;</text>
-        </div>
+      <list-item type="default" class="settings-item settings-item-value" onclick="openThemeColor">
+        <text class="item-text">主题色</text>
+        <text class="item-subtext">{{ themeColorName }}</text>
       </list-item>
       <list-item type="default" class="settings-item settings-item-switch">
-        <div class="item-main-row">
-          <div class="item-left-col item-switch-label">
-            <text class="item-text">隐藏授课老师</text>
-          </div>
-          <switch
-            class="item-switch"
-            checked="{{ hideTeacher }}"
-            style="track-color: {{ themeColor }}"
-            onchange="toggleHideTeacher"
-          ></switch>
-        </div>
+        <text class="item-text">隐藏授课老师</text>
+        <switch
+          class="item-switch"
+          checked="{{ hideTeacher }}"
+          style="track-color: {{ themeColor }}"
+          onchange="toggleHideTeacher"
+        ></switch>
       </list-item>
       <list-item type="default" class="settings-item settings-item-switch">
-        <div class="item-main-row">
-          <div class="item-left-col item-switch-label">
-            <text class="item-text">首页文本居中</text>
-          </div>
-          <switch
-            class="item-switch"
-            checked="{{ centerHomeText }}"
-            style="track-color: {{ themeColor }}"
-            onchange="toggleCenterHomeText"
-          ></switch>
-        </div>
+        <text class="item-text">首页文本居中</text>
+        <switch
+          class="item-switch"
+          checked="{{ centerHomeText }}"
+          style="track-color: {{ themeColor }}"
+          onchange="toggleCenterHomeText"
+        ></switch>
       </list-item>
     </list>
   </div>
@@ -55,10 +45,20 @@ import prompt from "@system.prompt"
 const preferences = require("../../common/preferences.js")
 const utils = require("../../common/utils.js")
 
+const COLOR_NAMES = {
+  "#237bff": "深空蓝",
+  "#06b6d4": "冰川青",
+  "#8b5cf6": "极光紫",
+  "#ec4899": "樱花粉",
+  "#15803d": "森林绿",
+  "#e0a422": "琥珀黄"
+}
+
 export default {
   private: {
     hideTeacher: false,
     themeColor: preferences.getCachedThemeColor(),
+    themeColorName: "",
     centerHomeText: false,
     currentTime: "",
     timerId: 0
@@ -86,6 +86,7 @@ export default {
       this.hideTeacher = !!pref.hideTeacher
       this.centerHomeText = !!pref.centerHomeText
       this.themeColor = pref.themeColor
+      this.themeColorName = COLOR_NAMES[pref.themeColor] || COLOR_NAMES[preferences.DEFAULT_COLOR]
     })
   },
 
@@ -140,7 +141,7 @@ export default {
 
 .title-row {
   width: 100%;
-  padding: 0 18px;
+  padding: 0 6px;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -151,11 +152,21 @@ export default {
   align-items: center;
 }
 
-.title-back {
-  margin-right: 12px;
+.title-back-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: transparent;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
 }
 
-.title-back,
+.title-back-icon {
+  width: 28px;
+  height: 28px;
+}
+
 .title-text {
   color: #ffffff;
   font-size: 30px;
@@ -164,65 +175,56 @@ export default {
 
 .settings-list {
   flex: 1;
-  width: 90%;
+  width: 95%;
   flex-direction: column;
+  padding-top: 10px;
 }
 
 .settings-item {
   width: 100%;
-  height: 64px;
+  height: 108px;
   margin-top: 8px;
-  border-radius: 20px;
-  border-width: 2px;
-  border-color: #3b3b3b;
-  background-color: #111111;
-  align-items: center;
-  justify-content: center;
-}
-
-.settings-item-switch {
-  height: 95px;
   padding: 0 16px;
-}
-
-.settings-item-nav {
-  height: 64px;
-  padding: 0 16px;
-}
-
-.item-arrow {
-  color: #666666;
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.item-switch-label {
-  flex: 1;
-}
-
-.item-switch {
-  width: 42.5px;
-  height: 22.5px;
-  thumb-color: #ffffff;
-}
-
-.item-main-row {
-  width: 100%;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.item-left-col {
+  border-radius: 16px;
+  background-color: rgba(38, 38, 38, 1);
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
 }
 
+.settings-item-value {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  justify-content: flex-start;
+}
+
+.settings-item-switch {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-item-switch .item-text {
+  flex: 1;
+}
+
+.item-switch {
+  width: 50px;
+  height: 25.5px;
+  thumb-color: #ffffff;
+}
+
 .item-text {
   color: #ffffff;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
+}
+
+.item-subtext {
+  margin-top: 4px;
+  color: #aaaaaa;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 @media (shape: rect) {
@@ -235,10 +237,22 @@ export default {
     margin-bottom: 8px;
   }
 
+  .settings-list {
+    padding-top: 0;
+  }
+
+  .settings-item-switch{
+    height: 80px;
+  }
+
   .item-text {
     font-size: 26px;
   }
-  
+
+  .item-subtext {
+    font-size: 24px;
+  }
+
   .item-switch {
     width: 55px;
     height: 28.5px;

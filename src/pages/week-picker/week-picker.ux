@@ -3,7 +3,9 @@
     <text class="title title-round">学期周数</text>
     <div class="title-row title-rect">
       <div class="title-left" onclick="goBack">
-        <text class="title-back">&lt;</text>
+        <div class="title-back-btn">
+          <image class="title-back-icon" src="/common/left.png"></image>
+        </div>
         <text class="title-text">学期周数</text>
       </div>
       <text class="title-text">{{ currentTime }}</text>
@@ -186,7 +188,7 @@ export default {
 
 .title-row {
   width: 100%;
-  padding: 0 18px;
+  padding: 0 6px;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -197,11 +199,21 @@ export default {
   align-items: center;
 }
 
-.title-back {
-  margin-right: 12px;
+.title-back-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: transparent;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
 }
 
-.title-back,
+.title-back-icon {
+  width: 28px;
+  height: 28px;
+}
+
 .title-text {
   color: #ffffff;
   font-size: 30px;

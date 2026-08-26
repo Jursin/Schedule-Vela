@@ -3,48 +3,35 @@
     <text class="title title-round">设置</text>
     <div class="title-row title-rect">
       <div class="title-left" onclick="goBack">
-        <text class="title-back">&lt;</text>
+        <div class="title-back-btn">
+          <image class="title-back-icon" src="/common/left.png"></image>
+        </div>
         <text class="title-text">设置</text>
       </div>
       <text class="title-text">{{ currentTime }}</text>
     </div>
 
     <list class="settings-list">
-      <list-item type="default" class="settings-item settings-item-date" onclick="openDatePicker">
-        <div class="item-main-row">
-          <div class="item-left-col">
-            <text class="item-text">开学日期</text>
-            <text class="item-subtext" if="{{ semesterStartDate }}">{{ semesterStartDate }}</text>
-          </div>
-          <text class="item-arrow">&gt;</text>
-        </div>
+      <list-item type="default" class="settings-item{{ semesterStartDate ? ' settings-item-value' : '' }}" onclick="openDatePicker">
+        <text class="item-text">开学日期</text>
+        <text class="item-subtext" if="{{ semesterStartDate }}">{{ semesterStartDate }}</text>
       </list-item>
-      <list-item type="default" class="settings-item settings-item-date" onclick="openWeekPicker">
-        <div class="item-main-row">
-          <div class="item-left-col">
-            <text class="item-text">学期周数</text>
-            <text class="item-subtext" if="{{ semesterTotalWeeks }}">
-              {{ semesterTotalWeeks }} 周
-            </text>
-          </div>
-          <text class="item-arrow">&gt;</text>
-        </div>
-      </list-item>
-      <list-item type="default" class="settings-item settings-item-nav" onclick="openPersonalize">
-        <div class="item-main-row">
-          <div class="item-left-col">
-            <text class="item-text">个性化</text>
-          </div>
-          <text class="item-arrow">&gt;</text>
-        </div>
-      </list-item>
-      <list-item type="default" class="settings-item settings-item-warn" onclick="clearSchedule">
-        <text class="item-text item-text-warn">
-          {{ clearConfirming ? "确认清除" : "清除配置" }}
+      <list-item type="default" class="settings-item{{ semesterTotalWeeks ? ' settings-item-value' : '' }}" onclick="openWeekPicker">
+        <text class="item-text">学期周数</text>
+        <text class="item-subtext" if="{{ semesterTotalWeeks }}">
+          {{ semesterTotalWeeks }} 周
         </text>
+      </list-item>
+      <list-item type="default" class="settings-item" onclick="openPersonalize">
+        <text class="item-text">个性化</text>
       </list-item>
       <list-item type="default" class="settings-item" onclick="openAbout">
         <text class="item-text">关于</text>
+      </list-item>
+      <list-item type="default" class="settings-item" onclick="clearSchedule">
+        <text class="item-text item-text-warn">
+          {{ clearConfirming ? "确认清除" : "清除配置" }}
+        </text>
       </list-item>
     </list>
   </div>
@@ -218,7 +205,7 @@ export default {
 
 .title-row {
   width: 100%;
-  padding: 0 18px;
+  padding: 0 6px;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -229,11 +216,21 @@ export default {
   align-items: center;
 }
 
-.title-back {
-  margin-right: 12px;
+.title-back-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: transparent;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
 }
 
-.title-back,
+.title-back-icon {
+  width: 28px;
+  height: 28px;
+}
+
 .title-text {
   color: #ffffff;
   font-size: 30px;
@@ -242,43 +239,32 @@ export default {
 
 .settings-list {
   flex: 1;
-  width: 90%;
+  width: 95%;
   flex-direction: column;
+  padding-top: 10px;
+  padding-bottom: 60px;
 }
 
 .settings-item {
   width: 100%;
-  height: 64px;
+  height: 70px;
   margin-top: 8px;
+  padding: 0 16px;
   border-radius: 20px;
-  border-width: 2px;
-  border-color: #3b3b3b;
-  background-color: #111111;
-  align-items: center;
-  justify-content: center;
-}
-
-.settings-item-date {
-  height: 95px;
-  padding: 0 16px;
-}
-
-.settings-item-nav {
-  height: 64px;
-  padding: 0 16px;
-}
-
-.item-main-row {
-  width: 100%;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.item-left-col {
+  background-color: rgba(38, 38, 38, 1);
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
+}
+
+.settings-item-value {
+  height: 101px;
+}
+
+.item-text {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 800;
 }
 
 .item-subtext {
@@ -286,22 +272,6 @@ export default {
   color: #aaaaaa;
   font-size: 20px;
   font-weight: 700;
-}
-
-.item-arrow {
-  color: #666666;
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.item-text {
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.settings-item-warn {
-  border-color: #4a2b2b;
 }
 
 .item-text-warn {
@@ -318,22 +288,25 @@ export default {
     margin-bottom: 8px;
   }
 
+  .settings-list {
+    padding-top: 0;
+    padding-bottom: 30px;
+  }
+
+  .settings-item {
+    height: 80px;
+  }
+
+  .settings-item-value {
+    height: 95px;
+  }
+
   .item-text {
     font-size: 26px;
   }
 
   .item-subtext {
     font-size: 24px;
-  }
-
-  .item-arrow {
-    font-size: 32px;
-  }
-}
-
-@media (shape: pill-shaped) {
-  .settings-list {
-    padding-bottom: 60px;
   }
 }
 </style>
