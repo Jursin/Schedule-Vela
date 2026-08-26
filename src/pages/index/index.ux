@@ -21,7 +21,7 @@
     </div>
 
     <div class="course-content">
-      <scroll class="course-list-scroll" scroll-y="true" if="{{ !notStarted && hasCourses }}">
+      <scroll class="course-list-scroll" scroll-y="true" bounces="true" if="{{ !notStarted && hasCourses }}">
         <block for="{{ group in courseGroups }}">
           <block if="{{ group.courses.length > 0 }}">
             <text class="section-title">{{ group.title }}</text>

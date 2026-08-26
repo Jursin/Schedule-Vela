@@ -12,29 +12,29 @@
       <text class="title-text">{{ currentTime }}</text>
     </div>
 
-    <list class="settings-list">
-      <list-item type="default" class="settings-item{{ semesterStartDate ? ' settings-item-value' : '' }}" onclick="openDatePicker">
+    <scroll class="settings-list" scroll-y="true" bounces="true">
+      <div class="settings-item{{ semesterStartDate ? ' settings-item-value' : '' }}" onclick="openDatePicker">
         <text class="item-text">开学日期</text>
         <text class="item-subtext" if="{{ semesterStartDate }}">{{ semesterStartDate }}</text>
-      </list-item>
-      <list-item type="default" class="settings-item{{ semesterTotalWeeks ? ' settings-item-value' : '' }}" onclick="openWeekPicker">
+      </div>
+      <div class="settings-item{{ semesterTotalWeeks ? ' settings-item-value' : '' }}" onclick="openWeekPicker">
         <text class="item-text">学期周数</text>
         <text class="item-subtext" if="{{ semesterTotalWeeks }}">
           {{ semesterTotalWeeks }} 周
         </text>
-      </list-item>
-      <list-item type="default" class="settings-item" onclick="openPersonalize">
+      </div>
+      <div class="settings-item" onclick="openPersonalize">
         <text class="item-text">个性化</text>
-      </list-item>
-      <list-item type="default" class="settings-item" onclick="openAbout">
+      </div>
+      <div class="settings-item" onclick="openAbout">
         <text class="item-text">关于</text>
-      </list-item>
-      <list-item type="default" class="settings-item" onclick="clearSchedule">
+      </div>
+      <div class="settings-item" onclick="clearSchedule">
         <text class="item-text item-text-warn">
           {{ clearConfirming ? "确认清除" : "清除配置" }}
         </text>
-      </list-item>
-    </list>
+      </div>
+    </scroll>
   </div>
 </template>
 

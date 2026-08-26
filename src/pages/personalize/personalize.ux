@@ -12,7 +12,7 @@
       <text class="title-text">{{ currentTime }}</text>
     </div>
 
-    <list class="settings-list">
+    <list class="settings-list" bounces="true">
       <list-item type="default" class="settings-item settings-item-value" onclick="openThemeColor">
         <text class="item-text">主题色</text>
         <text class="item-subtext">{{ themeColorName }}</text>

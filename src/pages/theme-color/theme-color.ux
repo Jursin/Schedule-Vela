@@ -12,9 +12,8 @@
       <text class="title-text">{{ currentTime }}</text>
     </div>
 
-    <list class="color-list">
-      <list-item
-        type="default"
+    <scroll class="color-list" scroll-y="true" bounces="true">
+      <div
         class="color-item"
         for="{{ color in colorOptions }}"
         style="background-color: {{ color.value }}"
@@ -26,8 +25,8 @@
           if="{{ selectedColor === color.value }}"
           src="/common/tick.png"
         ></image>
-      </list-item>
-    </list>
+      </div>
+    </scroll>
   </div>
 </template>
 
