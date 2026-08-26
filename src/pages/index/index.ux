@@ -1,7 +1,9 @@
 <template>
   <div class="page">
+    <text class="pill-time">{{ currentTime }}</text>
     <div class="header-wrap">
       <text class="week-text">第{{ currentWeekText }}周</text>
+      <text class="rect-time">{{ currentTime }}</text>
       <div class="date-switch-row">
         <div class="date-arrow-button" onclick="goPrevDay">
           <image class="date-arrow-icon" src="/common/left.png"></image>
@@ -309,20 +311,25 @@ export default {
     hideTeacher: false,
     centerHomeText: false,
     themeColor: preferences.getCachedThemeColor(),
-    courseGroups: []
+    courseGroups: [],
+    currentTime: "",
+    timerId: 0
   },
 
   onInit() {
+    utils.startClock(this)
     this.bindInterconnect()
     this.initDaySlides()
     this.loadSchedule()
   },
 
   onDestroy() {
+    utils.stopClock(this)
     conn.onmessage = null
   },
 
   onShow() {
+    this.currentTime = utils.formatTime(new Date())
     this.loadSchedule()
   },
 
@@ -637,10 +644,23 @@ export default {
   align-items: center;
 }
 
+.pill-time {
+  position: absolute;
+  top: 4px;
+  font-size: 24px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+}
+
+.rect-time {
+  display: none;
+}
+
 .header-wrap {
   flex-direction: column;
   width: 100%;
-  padding: 18px 0 6px;
+  padding: 32px 0 6px;
   align-items: center;
   justify-content: center;
 }
@@ -801,6 +821,30 @@ export default {
 }
 
 @media (shape: rect) {
+  .pill-time {
+    display: none;
+  }
+
+  .rect-time {
+    display: flex;
+    margin-left: 12px;
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: 800;
+  }
+
+  .header-wrap {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 18px 0 6px;
+  }
+
+  .date-switch-row {
+    width: 100%;
+  }
+
   .week-text {
     font-size: 30px;
   }
