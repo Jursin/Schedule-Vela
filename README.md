@@ -20,7 +20,7 @@
 - 上课时详情页显示下一节课课程和教室
 - 支持首页文本居中、地点前添加@、隐藏授课老师等偏好
 - 支持多种预设主题色
-- 支持导入[拾光课程表](https://sgschedule.jursin.top/)、[WakeUp 课程表](https://www.wakeup.fun/)和 [CSES](https://cloud.smart-teach.cn/) 的配置文件
+- 支持导入[拾光课程表](https://sgschedule.jursin.top/)、[WakeUp 课程表](https://www.wakeup.fun/)、星链课表和 [CSES](https://cloud.smart-teach.cn/) 的配置文件
 
 > [!warning]
 > 在模拟器上测试过小米手环 8Pro/9/9Pro/10 无显示问题，但只在小米手环 9 上实机测试过
