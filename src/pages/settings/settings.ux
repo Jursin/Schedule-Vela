@@ -111,8 +111,14 @@ export default {
         const data = parseStoragePayload(raw)
         if (validateSchedule(data)) {
           this.scheduleData = data
-          this.semesterStartDate = (data.config && data.config.semesterStartDate) || ""
-          this.semesterTotalWeeks = (data.config && data.config.semesterTotalWeeks) || ""
+          // 有该字段时覆盖，无该字段时保留当前值
+          const incomingConfig = data.config || {}
+          if ("semesterStartDate" in incomingConfig) {
+            this.semesterStartDate = incomingConfig.semesterStartDate || ""
+          }
+          if ("semesterTotalWeeks" in incomingConfig) {
+            this.semesterTotalWeeks = incomingConfig.semesterTotalWeeks || ""
+          }
           this.clearConfirming = false
           return
         }

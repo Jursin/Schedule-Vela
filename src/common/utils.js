@@ -28,9 +28,6 @@ function normalizeScheduleData(data) {
     timeSlots: Array.isArray(data.timeSlots) ? data.timeSlots : [],
     config: data.config && typeof data.config === "object" ? data.config : {}
   }
-  if (!normalized.config.semesterStartDate) {
-    normalized.config.semesterStartDate = ""
-  }
   return normalized
 }
 

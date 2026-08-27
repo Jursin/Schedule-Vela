@@ -387,12 +387,13 @@ export default {
           return
         }
         const importedSchedule = utils.normalizeScheduleData(imported)
-        // 来源未携带 config 时保留旧配置
+        // 有该字段时覆盖，无该字段时保留旧配置
         const prevConfig = (this.scheduleData && this.scheduleData.config) || {}
-        if (!importedSchedule.config.semesterStartDate && prevConfig.semesterStartDate) {
+        const importedConfig = imported.config || {}
+        if (!("semesterStartDate" in importedConfig)) {
           importedSchedule.config.semesterStartDate = prevConfig.semesterStartDate
         }
-        if (!importedSchedule.config.semesterTotalWeeks && prevConfig.semesterTotalWeeks) {
+        if (!("semesterTotalWeeks" in importedConfig)) {
           importedSchedule.config.semesterTotalWeeks = prevConfig.semesterTotalWeeks
         }
         this.scheduleData = importedSchedule
