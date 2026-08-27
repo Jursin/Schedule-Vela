@@ -2,7 +2,6 @@
 /sign
 /dist
 /build
-/docs
 
 examples/example-schedule*.json
 !examples/example-schedule.example.json

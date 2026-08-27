@@ -6,7 +6,7 @@
 
 一款适用于 Xiaomi Vela OS 操作系统的课程表快应用，让每一次查看课表都抬腕即得
 
-<img src="https://blog.jursin.top/images/schedule-vela/banner.png" />
+<img src="docs/images/banner.png" />
 
 </div>
 
@@ -27,13 +27,13 @@
 
 ## 🖼️ 预览图
 ### Xiaomi-Band
-![](https://blog.jursin.top/images/schedule-vela/Xiaomi-Band.png)
+![](docs/images/Xiaomi-Band.png)
 
 ### Xiaomi-Band-10
-![](https://blog.jursin.top/images/schedule-vela/Xiaomi-Band-10.png)
+![](docs/images/Xiaomi-Band-10.png)
 
 ### Xiaomi-Band-Pro
-![](https://blog.jursin.top/images/schedule-vela/Xiaomi-Band-Pro.png)
+![](docs/images/Xiaomi-Band-Pro.png)
 
 ## 📥 安装方式
 
