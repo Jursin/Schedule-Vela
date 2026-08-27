@@ -310,6 +310,7 @@ export default {
     currentWeekText: "-",
     hideTeacher: false,
     centerHomeText: false,
+    prefixAtSymbol: false,
     themeColor: preferences.getCachedThemeColor(),
     courseGroups: [],
     currentTime: "",
@@ -455,6 +456,7 @@ export default {
     preferences.getPreferences((pref) => {
       this.hideTeacher = !!pref.hideTeacher
       this.centerHomeText = !!pref.centerHomeText
+      this.prefixAtSymbol = !!pref.prefixAtSymbol
       this.themeColor = pref.themeColor
       if (callback) {
         callback()
@@ -556,7 +558,7 @@ export default {
       }
       const normalized = {
         name: item.name,
-        position: item.position || "",
+        position: this.prefixAtSymbol && item.position ? "@" + item.position : item.position || "",
         teacher: this.hideTeacher ? "" : item.teacher || "",
         startSection: item.startSection,
         customStartTime: item.customStartTime || "",

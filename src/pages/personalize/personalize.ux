@@ -18,21 +18,30 @@
         <text class="item-subtext">{{ themeColorName }}</text>
       </list-item>
       <list-item type="default" class="settings-item settings-item-switch">
-        <text class="item-text">隐藏授课老师</text>
-        <switch
-          class="item-switch"
-          checked="{{ hideTeacher }}"
-          style="track-color: {{ themeColor }}"
-          onchange="toggleHideTeacher"
-        ></switch>
-      </list-item>
-      <list-item type="default" class="settings-item settings-item-switch">
         <text class="item-text">首页文本居中</text>
         <switch
           class="item-switch"
           checked="{{ centerHomeText }}"
           style="track-color: {{ themeColor }}"
           onchange="toggleCenterHomeText"
+        ></switch>
+      </list-item>
+      <list-item type="default" class="settings-item settings-item-switch">
+        <text class="item-text">地点前添加@</text>
+        <switch
+          class="item-switch"
+          checked="{{ prefixAtSymbol }}"
+          style="track-color: {{ themeColor }}"
+          onchange="togglePrefixAtSymbol"
+        ></switch>
+      </list-item>
+      <list-item type="default" class="settings-item settings-item-switch">
+        <text class="item-text">隐藏授课老师</text>
+        <switch
+          class="item-switch"
+          checked="{{ hideTeacher }}"
+          style="track-color: {{ themeColor }}"
+          onchange="toggleHideTeacher"
         ></switch>
       </list-item>
     </list>
@@ -61,6 +70,7 @@ export default {
     themeColor: preferences.getCachedThemeColor(),
     themeColorName: "",
     centerHomeText: false,
+    prefixAtSymbol: false,
     currentTime: "",
     timerId: 0
   },
@@ -91,6 +101,7 @@ export default {
     preferences.getPreferences((pref) => {
       this.hideTeacher = !!pref.hideTeacher
       this.centerHomeText = !!pref.centerHomeText
+      this.prefixAtSymbol = !!pref.prefixAtSymbol
       this.themeColor = pref.themeColor
       this.themeColorName = COLOR_NAMES[pref.themeColor] || COLOR_NAMES[preferences.DEFAULT_COLOR]
     })
@@ -115,6 +126,11 @@ export default {
   toggleCenterHomeText(event) {
     this.centerHomeText = !!event.checked
     this.savePreferences({centerHomeText: this.centerHomeText})
+  },
+
+  togglePrefixAtSymbol(event) {
+    this.prefixAtSymbol = !!event.checked
+    this.savePreferences({prefixAtSymbol: this.prefixAtSymbol})
   },
 
   openThemeColor() {

@@ -6,7 +6,8 @@ const DEFAULT_COLOR = "#237bff"
 const DEFAULT_PREFERENCES = {
   themeColor: DEFAULT_COLOR,
   hideTeacher: false,
-  centerHomeText: false
+  centerHomeText: false,
+  prefixAtSymbol: false
 }
 
 // 内存缓存：应用启动时预载，页面同步读取首帧主题色

@@ -65,6 +65,7 @@ export default {
   private: {
     currentTime: "",
     themeColor: preferences.getCachedThemeColor(),
+    prefixAtSymbol: false,
     remainingMinutes: 0,
     upcomingMinutes: 0,
     showUpcomingReminder: false,
@@ -155,6 +156,7 @@ export default {
   loadPreference() {
     preferences.getPreferences((pref) => {
       this.themeColor = pref.themeColor
+      this.prefixAtSymbol = !!pref.prefixAtSymbol
     })
   },
 
@@ -187,7 +189,7 @@ export default {
           const range = item._parsedRange
           if (range && range.start > currentEndMinutes) {
             nextName = item.name || ""
-            nextPosition = item.position || ""
+            nextPosition = this.prefixAtSymbol && item.position ? "@" + item.position : item.position || ""
             break
           }
         }
