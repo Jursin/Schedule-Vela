@@ -12,39 +12,39 @@
       <text class="title-text">{{ currentTime }}</text>
     </div>
 
-    <list class="settings-list" bounces="true">
-      <list-item type="default" class="settings-item settings-item-value" onclick="openThemeColor">
+    <scroll class="settings-list" scroll-y="true" bounces="true">
+      <div class="settings-item settings-item-value" onclick="openThemeColor">
         <text class="item-text">主题色</text>
         <text class="item-subtext">{{ themeColorName }}</text>
-      </list-item>
-      <list-item type="default" class="settings-item settings-item-switch">
-        <text class="item-text">首页文本居中</text>
+      </div>
+      <div class="settings-item switch-row">
+        <text class="switch-label">首页文本居中</text>
         <switch
           class="item-switch"
           checked="{{ centerHomeText }}"
           style="track-color: {{ themeColor }}"
           onchange="toggleCenterHomeText"
         ></switch>
-      </list-item>
-      <list-item type="default" class="settings-item settings-item-switch">
-        <text class="item-text">地点前添加@</text>
+      </div>
+      <div class="settings-item switch-row">
+        <text class="switch-label">地点前添加@</text>
         <switch
           class="item-switch"
           checked="{{ prefixAtSymbol }}"
           style="track-color: {{ themeColor }}"
           onchange="togglePrefixAtSymbol"
         ></switch>
-      </list-item>
-      <list-item type="default" class="settings-item settings-item-switch">
-        <text class="item-text">隐藏授课老师</text>
+      </div>
+      <div class="settings-item switch-row">
+        <text class="switch-label">隐藏授课老师</text>
         <switch
           class="item-switch"
           checked="{{ hideTeacher }}"
           style="track-color: {{ themeColor }}"
           onchange="toggleHideTeacher"
         ></switch>
-      </list-item>
-    </list>
+      </div>
+    </scroll>
   </div>
 </template>
 
@@ -209,34 +209,32 @@ export default {
   width: 95%;
   flex-direction: column;
   padding-top: 10px;
+  padding-bottom: 60px;
 }
 
 .settings-item {
   width: 100%;
-  height: 108px;
+  height: 101px;
   margin-top: 8px;
   padding: 0 16px;
-  border-radius: 16px;
+  border-radius: 20px;
   background-color: rgba(38, 38, 38, 1);
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
 }
 
-.settings-item-value {
-  padding-top: 20px;
-  padding-bottom: 20px;
-  justify-content: flex-start;
-}
-
-.settings-item-switch {
+.switch-row {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
 }
 
-.settings-item-switch .item-text {
+.switch-label {
   flex: 1;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 800;
 }
 
 .item-switch {
@@ -278,13 +276,18 @@ export default {
 
   .settings-list {
     padding-top: 0;
+    padding-bottom: 30px;
   }
 
-  .settings-item-switch{
+  .settings-item {
     height: 80px;
   }
 
-  .item-text {
+  .settings-item-value {
+    height: 115px;
+  }
+
+  .switch-label {
     font-size: 26px;
   }
 

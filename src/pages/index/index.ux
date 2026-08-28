@@ -749,7 +749,7 @@ export default {
   flex-direction: column;
   width: 100%;
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 20px;
   border-width: 2px;
   border-color: #3b3b3b;
   background-color: #090909;
