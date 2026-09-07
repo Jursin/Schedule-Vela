@@ -106,12 +106,10 @@ export default {
   startDetailTimer() {
     this.timer = setInterval(() => {
       this.updateCurrentTime()
+      this.calculateRemainingTime()
+      this.calculateUpcomingReminder()
       if (this.course.isOngoing) {
-        this.calculateRemainingTime()
         this.calculateNextCourse()
-      }
-      if (this.inReminderWindow() || this.showUpcomingReminder) {
-        this.calculateUpcomingReminder()
       }
     }, 1000)
   },
@@ -232,8 +230,6 @@ export default {
   },
 
   calculateRemainingTime() {
-    if (!this.course.isOngoing) return
-
     const range = this.course._parsedRange || utils.parseTimeRange(this.course.timeText)
     if (!range) return
 
@@ -242,6 +238,15 @@ export default {
     const totalEndSeconds = range.end * 60
     const totalCurrentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()
 
+    // 尚未到上课时间
+    if (totalCurrentSeconds < totalStartSeconds) {
+      this.course.isOngoing = false
+      this.course.progressPercent = 0
+      this.remainingMinutes = 0
+      return
+    }
+
+    // 已过下课时间
     const remainingSeconds = totalEndSeconds - totalCurrentSeconds
     if (remainingSeconds <= 0) {
       this.remainingMinutes = 0
@@ -250,6 +255,8 @@ export default {
       return
     }
 
+    // 正在上课中
+    this.course.isOngoing = true
     this.remainingMinutes = Math.ceil(remainingSeconds / 60)
     const durationSeconds = totalEndSeconds - totalStartSeconds
     if (durationSeconds > 0) {
