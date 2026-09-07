@@ -189,7 +189,7 @@ export default {
           const range = item._parsedRange
           if (range && range.start > currentEndMinutes) {
             nextName = item.name || ""
-            nextPosition = this.prefixAtSymbol && item.position ? "@" + item.position : item.position || ""
+            nextPosition = item.position || ""
             break
           }
         }
