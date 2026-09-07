@@ -20,10 +20,7 @@
 - 上课时详情页显示下一节课课程和教室
 - 支持首页文本居中、地点前添加@、隐藏授课老师等偏好
 - 支持多种预设主题色
-- 支持导入[拾光课程表](https://sgschedule.jursin.top/)、[WakeUp 课程表](https://www.wakeup.fun/)、星链课表和 [CSES](https://cloud.smart-teach.cn/) 的配置文件
-
-> [!warning]
-> 在模拟器上测试过小米手环 8Pro/9/9Pro/10 无显示问题，但只在小米手环 9 上实机测试过
+- 支持导入[拾光课程表](https://sgschedule.jursin.top/)、[WakeUp 课程表](https://www.wakeup.fun/)、[星链课表](https://pd.qq.com/g/pd81186469)和 [CSES](https://cloud.smart-teach.cn/) 的配置文件
 
 ## 🖼️ 预览图
 ### Xiaomi-Band
@@ -42,7 +39,7 @@
 [![自定义表盘工具](https://img.shields.io/badge/%E9%80%9A%E8%BF%87%E8%87%AA%E5%AE%9A%E4%B9%89%E8%A1%A8%E7%9B%98%E5%B7%A5%E5%85%B7%E8%8E%B7%E5%8F%96-black?style=for-the-badge)](https://api.bandbbs.cn/wftools/bandbbs.html?code=A&state=1855993)
 
 > [!note]
-> 导入课表需通过[同步器 APP](https://github.com/Jursin/Schedule-Sync/releases/latest)或 AstroBox 插件，详情请阅读[文档](https://blog.jursin.top/blog/tutorials/schedule-vela.html)
+> 导入课表需通过 AstroBox 插件或[同步器 APP](https://github.com/Jursin/Schedule-Sync/releases/latest)，详情请阅读[文档](https://blog.jursin.top/blog/tutorials/schedule-vela.html)
 
 ## 💻 开发
 - 环境：Node.js
@@ -87,11 +84,11 @@
 暂不考虑。现在小爱课程表难以打开，且没有导出配置文件的功能。手动适配难度大、收益低，如果一定要使用建议直接使用相关衍生项目。
 
 ### 可不可以适配其它设备？
-本快应用根据Xiaomi Vela JS 应用开发文档开发，理论上支持文档提到的[小米 Vela 穿戴设备](https://iot.mi.com/vela/quickapp/zh/guide/multi-screens/)。但因为我只有小米手环 9，所以除了这个设备屏幕适配较好外，其它设备屏幕适配可能不太好，但仍可以尝试安装。
+本快应用根据 Xiaomi Vela JS 应用开发文档开发，理论上支持文档提到的[小米 Vela 穿戴设备](https://iot.mi.com/vela/quickapp/zh/guide/multi-screens/)。但除了小米手环 9 实机测试过，其它设备只在模拟器上测试过，实机安装可能有点小瑕疵。
 
 ## 📦 相关仓库
-- 同步器 APP：[Jursin/Schedule-Sync](https://github.com/Jursin/Schedule-Sync)
 - 同步器 AstroBox v2 插件：[Jursin/Schedule-AstroBox-Plugin](https://github.com/Jursin/Schedule-AstroBox-Plugin)
+- 同步器 APP：[Jursin/Schedule-Sync](https://github.com/Jursin/Schedule-Sync)
 
 ## 📖 参考
 - [Xiaomi Vela JS 应用开发文档](https://iot.mi.com/vela/quickapp)
